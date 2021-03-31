@@ -59,7 +59,7 @@ const db = mysql.createPool({
 	password: '',
 	database: 'singandshare'*/
 	host:'sql324.main-hosting.eu',
-	user: 'u671633553.singandshare',
+	user: 'u671633553_singshareadmin',
 	password: 'Admin@123',
 	database: 'u671633553_SingAndShare'
 });

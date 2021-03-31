@@ -1,7 +1,7 @@
 {
-    "name": "SingShareAPI",
+    "name": "KorbanApi",
     "version": "1.0.0",
-    "description": "SingShare API",
+    "description": "Korban API",
     "dependencies": {
         "aws-sdk": "^2.857.0",
         "base64-img": "^1.0.4",
@@ -29,10 +29,10 @@
         "npm": "^6.4.0",
         "path": "^0.12.7"
     },
-    "main": "server.js",
+    "main": "api.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon server.js"
+        "start": "node api.js"
     },
     "keywords": [
         "ipmp"

@@ -58,7 +58,7 @@ const db = mysql.createPool({
 	user: 'root',
 	password: '',
 	database: 'singandshare'*/
-	server:'sql324.main-hosting.eu',
+	host:'sql324.main-hosting.eu',
 	user: 'u671633553.singandshare',
 	password: 'Admin@123',
 	database: 'u671633553_SingAndShare'

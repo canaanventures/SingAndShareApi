@@ -2,6 +2,9 @@
     "name": "KorbanApi",
     "version": "1.0.0",
     "description": "Korban API",
+    "engines": {
+        "node": "12.16.1"
+    },
     "dependencies": {
         "aws-sdk": "^2.857.0",
         "base64-img": "^1.0.4",
@@ -29,6 +32,7 @@
         "npm": "^6.4.0",
         "path": "^0.12.7"
     },
+
     "main": "api.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",

@@ -61,9 +61,9 @@ var upload = multer({storage: storage});
 
 const db = mysql.createPool({
 	host:'sql324.main-hosting.eu',
-	user: 'u671633553_singshareadmin',
-	password: 'Admin@123',
-	database: 'u671633553_SingAndShare'
+	user: 'u671633553_sas_admin',
+	password: 'S@SAdmin9',
+	database: 'u671633553_singandshare'
 });
 
 app.post('/login',function(req,res){
@@ -73,25 +73,19 @@ app.post('/login',function(req,res){
 		scopes:["customer:create","customer:read"]
 	}
 	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
-	console.log("1=>"+req.body.email);
 	db.getConnection(function (err, connection) {
-		console.log("2=>"+req.body.pass_word);
 		if(err){
             console.log(err);
         }else{
-        	console.log("3=>"+req.body.pass_word);
 			connection.query(sql, function(err, data, fields) {
-				console.log("4=>"+req.body.pass_word);
 				if(err){
 					res.json({
 						status: null,
 						message: err
 				   	});
 				}else{
-					console.log("5=>"+req.body.pass_word);
 					let query = "SELECT user_password from users_password WHERE user_email_id = '"+req.body.email+"'";
 					connection.query(query, function(err, data, fields) {
-						console.log("6=>"+req.body.pass_word);
 						if(err){
 							res.json({
 								status: null,

@@ -45,12 +45,13 @@ var upload = multer({storage: storage});
 
 //app.listen(port, () => console.log(`Example 123 app listening on port ${port}!`));
 
-/*const db = mysql.createPool({
-	host: 'server1.cjeast.com',
-	user: 'admin_sing_and_share',
-	password: 'Sing&Share@123',
-	database: 'admin_sing_and_share'
-});*/
+//host: 'server1.cjeast.com',
+const db = mysql.createPool({
+	host: '65.175.118.74',
+	user: 'admin_sas',
+	password: 'S@SAdmin9',
+	database: 'admin_singandshare'
+});
 
 /*const db = mysql.createPool({
 	host: 'localhost',
@@ -59,12 +60,12 @@ var upload = multer({storage: storage});
 	database: 'singandshare'
 });*/
 
-const db = mysql.createPool({
+/*const db = mysql.createPool({
 	host:'sql324.main-hosting.eu',
 	user: 'u671633553_sas_admin',
 	password: 'S@SAdmin9',
 	database: 'u671633553_singandshare'
-});
+});*/
 
 app.post('/login',function(req,res){
 	const user = {

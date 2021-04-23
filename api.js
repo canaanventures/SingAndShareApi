@@ -23,7 +23,7 @@ app.use(express.static('public'));
 //const DIR = './uploads/events';
 const DIR ='https://vecan.co/uploads/events';
 //const redirectlink = 'http://localhost:4200/register/';
-const redirectlink = 'http://singandshare.vecan.co/register/'
+const redirectlink = 'http://singandshare.vecan.co/register/';
 
 var photopath = '';
 var usertableresp = '';
@@ -78,8 +78,8 @@ const db = mysql.createPool({
 const mailerdetails = nodemailer.createTransport({
     service: 'gmail',
  	auth: {
-        user: 'reubenjathanna1991@gmail.com',
-        pass: 'reuben@951991'
+        user: 'singandshare2021@gmail.com',
+        pass: 'sas@1234'
     }
 });
 

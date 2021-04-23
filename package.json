@@ -1,10 +1,7 @@
 {
-    "name": "KorbanApi",
+    "name": "SingShareAPI",
     "version": "1.0.0",
-    "description": "Korban API",
-    "engines": {
-        "node": "12.16.1"
-    },
+    "description": "SingShare API",
     "dependencies": {
         "aws-sdk": "^2.857.0",
         "base64-img": "^1.0.4",
@@ -21,22 +18,22 @@
         "helmet": "^3.22.0",
         "http": "0.0.1-security",
         "jsonwebtoken": "^8.5.1",
+        "jwt-decode": "^3.1.2",
         "jwt-simple": "^0.5.6",
         "moment": "^2.22.2",
         "multer": "^1.4.2",
         "mysql": "^2.18.1",
         "mysql2": "^2.2.5",
-        "nodemailer": "^4.6.8",
+        "nodemailer": "^4.7.0",
         "nodemailer-smtp-transport": "^2.7.4",
         "nodemon": "^1.18.3",
         "npm": "^6.4.0",
         "path": "^0.12.7"
     },
-
-    "main": "api.js",
+    "main": "server.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node api.js"
+        "start": "nodemon server.js"
     },
     "keywords": [
         "ipmp"

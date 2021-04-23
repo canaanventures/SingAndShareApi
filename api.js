@@ -3,6 +3,7 @@ http = require('http'),
 port = process.env.PORT || 3000,
 mysql = require('mysql2'),
 app = express(),
+nodemailer = require('nodemailer'),
 bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
@@ -10,6 +11,8 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const authorize = require('./authorization/authorization-middleware');
 const config = require('./authorization/config');
+const registration_email = require('./email_templates/registration');
+//const mailFormat = require('./common/mail');
 
 app.set("views",path.join(__dirname,"views"));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -17,8 +20,13 @@ app.use(bodyParser.json());
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-const DIR = './uploads/events';
+//const DIR = './uploads/events';
+const DIR ='https://vecan.co/uploads/events';
+//const redirectlink = 'http://localhost:4200/register/';
+const redirectlink = 'http://singandshare.vecan.co/register/'
+
 var photopath = '';
+var usertableresp = '';
 
 app.use(function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
@@ -37,7 +45,7 @@ var storage = multer.diskStorage({
 	    var b = dte.split('T')[0].split('-').join('_');		
 	    var c = dte.split('T')[1].split(':').join('_');
 	    var reqdte = b+'_'+c;
-	    photopath = '/uploads/events/event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname);
+	    photopath = 'uploads/events/event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname);
 	    cb(null, 'event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname));
     }
 });
@@ -67,12 +75,15 @@ const db = mysql.createPool({
 	database: 'u671633553_singandshare'
 });*/
 
+const mailerdetails = nodemailer.createTransport({
+    service: 'gmail',
+ 	auth: {
+        user: 'reubenjathanna1991@gmail.com',
+        pass: 'reuben@951991'
+    }
+});
+
 app.post('/login',function(req,res){
-	const user = {
-		email : req.body.email,
-		password : req.body.pass_word,
-		scopes:["customer:create","customer:read"]
-	}
 	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
 	db.getConnection(function (err, connection) {
 		if(err){
@@ -93,17 +104,35 @@ app.post('/login',function(req,res){
 								message: err
 						   	});
 						}else{
-							if(data[0].user_password == req.body.pass_word){
-								jwt.sign(user, 'my secret key', (err,token) => {
-									res.json({
-										status: 200,
-										message: "User logged in successfully.",
-										token : token
-									});
+							if(data[0].user_password == req.body.pass_word){					
+								let query = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+								connection.query(query, function(err, data, fields) {
+									if(err){
+										res.json({
+											status: null,
+											message: err
+									   	});
+									}else{
+										const user = {
+											email : data[0].user_email_id,
+											user_id : data[0].user_id,
+											first_name : data[0].user_first_name,
+											last_name : data[0].user_last_name,
+											scopes:["customer:create","customer:read"]
+										}
+										jwt.sign(user, 'my secret key', (err,token) => {
+											res.json({
+												status: 200,
+												message: "User logged in successfully.",
+												token : token,
+												data: data
+											});
+										})
+									}									
 								})
 							}else{
 								res.json({
-									status: 200,
+									status: 201,
 									message: "Incorrect password."
 								});
 							}
@@ -122,7 +151,7 @@ app.post('/register',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"')";
+	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"')";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -138,7 +167,30 @@ app.post('/register',function(req,res){
 						message: err
 				   	});
 				}else{
-					let sql = "INSERT INTO usersdetails (user_address,user_city,user_country) VALUES ('"+req.body.user_address+"','"+req.body.user_city+"','"+req.body.user_country+"')";
+					let param ={
+						"email_id" : req.body.user_email_id,
+						"password" : req.body.user_password
+					}
+					var description = registration_email.user_register(param);
+
+				   	var mailOptions={
+				        to: req.body.user_email_id,
+						subject: 'Welcome to SingAndShare !!!',
+						html: description
+				    }
+
+				    mailerdetails.sendMail(mailOptions, function(error, response){
+					    if(error){
+					        res.end("error");
+					    }else{
+					        res.json({
+								status: 200,
+								message: "You have been successfully registered. email has been sent to your mentioned ID."
+							});
+					    }
+					});
+					
+					/*let sql = "INSERT INTO usersdetails (user_address,user_city,user_country) VALUES ('"+req.body.user_address+"','"+req.body.user_city+"','"+req.body.user_country+"')";
 					db.query(sql, function(err, data, fields) {
 						if(err){
 							res.json({
@@ -148,18 +200,201 @@ app.post('/register',function(req,res){
 						}else{
 							res.json({
 								status: 200,
-								message: "User logged in successfully."
+								message: "User registered successfully."
 							});
 						}
-					});
+					});*/
 				}
 			});
 		}
 	});
 })
 
+app.get('/getUsers',function(req,res){
+	let sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.user_created_date,roles.role_name FROM users INNER JOIN roles ON users.role_id = roles.role_id";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{		
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully.",
+			});						
+		}
+	});
+})
+
+app.post('/getProfile',function(req,res){
+	let sql = "SELECT * from users INNER JOIN usersdetails ON users.user_id = usersdetails.user_id WHERE user_email_id = '"+req.body.id+"'";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{		
+			res.json({
+				status: 200,
+				data: data,
+				message: "User Detail fetched successfully.",
+			});						
+		}
+	});
+})
+
+app.post('/registerUserForEvent',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO contact (salutation, contact_first_name, contact_last_name, contact_email_id, contact_number, contact_state, contact_city, contact_referrer, contact_address, event_id, created_date) VALUES ('"+req.body.contact_sal+"','"+req.body.contact_first_name+"','"+req.body.contact_last_name+"','"+req.body.contact_email_id+"','"+req.body.contact_number+"','"+req.body.contact_state+"','"+req.body.contact_city+"','"+req.body.contact_referrer+"','"+req.body.contact_address+"','"+req.body.event_id+"','"+reqdte+"')";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let sql = "SELECT event_name, event_start_date, venue_name FROM events";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					var dte = new Date(data[0].event_start_date);
+					var evt_date = dte.getDate()+'/'+(dte.getMonth()+1)+'/'+dte.getFullYear();
+					let evt_time = dte.getHours()+':'+dte.getMinutes();
+
+					let param = {
+						"event_name" : data[0].event_name,
+						"event_start_date" : evt_date,
+						"event_start_time": evt_time,
+						"venue_name": data[0].venue_name
+					}
+					var description = registration_email.event_register(param);
+
+				   	var mailOptions={
+				        to: req.body.contact_email_id,
+						subject: 'Webinar Registration Details',
+						html: description
+				    }
+
+				    mailerdetails.sendMail(mailOptions, function(error, response){
+					    if(error){
+					        res.end("error");
+					    }else{
+					        res.json({
+								status: 200,
+								message: "User successfully registered for the event.",
+								data: ''
+							});
+					    }
+					});
+				}
+			})		
+		}
+	});				
+})
+
+app.get('/getContact/:email',function(req,res){
+	let sql = "SELECT contact_id FROM contact WHERE contact_email_id = '"+req.params.email+"'";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				message: "User successfully registered for the event.",
+				data: data
+			});
+		}
+	});				
+})
+
+app.post('/addToContactEvent',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO contact_event (contact_id, event_id, created_date) VALUES ('"+req.body.contact_id+"','"+req.body.event_id+"','"+reqdte+"')";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				message: "You have successfully registered yourself for the event."
+			});
+		}
+	})
+})
+
+app.post('/addAttendance',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO attendance (user_id, sns_name, meeting_date, no_of_people_attended, no_of_new_people_attended, created_date) VALUES ('"+req.body.user_id+"','"+req.body.sns_name+"','"+req.body.meeting_date+"','"+req.body.people_attended+"','"+req.body.new_people_attended+"','"+reqdte+"')";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				message: "Added meeting details successfully."
+			});
+		}
+	})
+})
+
+app.post('/sendUserLink',function(req,res){
+	let param = {
+		"redirectlink" : redirectlink,
+		"url" : req.body.url
+	}
+	var description = registration_email.mentee_register(param);
+
+   	var mailOptions={
+        to: req.body.email,
+		subject: 'Register Yourself as a Mentee at SingAndShare',
+		html: description
+    }
+
+    mailerdetails.sendMail(mailOptions, function(error, response){
+	    if(error){
+	        res.end("error");
+	    }else{
+	        res.end("Email Sent");
+	    }
+	});
+})
+
 app.post('/checkUser',function(req,res){
-	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+	let sql = "SELECT * from contact WHERE contact_email_id = '"+req.body.email+"'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -224,13 +459,12 @@ app.post('/addEvent',function(req,res){
 })
 
 app.post('/addRole',function(req,res){
+	//let accessToken = req.cookies.jwt;
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	// debugger;
-	
 	req.body.created_by_user_id=1;
 	req.body.modified_user_id=1;
 
@@ -251,8 +485,46 @@ app.post('/addRole',function(req,res){
 	});
 })
 
-app.get('/getEvents',authorize("customer:read"), function(req,res){ //
+app.get('/getRole',function(req,res){ //,authorize("customer:read")
+	let sql = "SELECT role_id, role_name FROM roles";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Role Fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getEvents', function(req,res){ //
 	let sql = "SELECT e.event_id, poster_url from events as e inner join event_status as es on e.event_status_id = es.event_status_id where es.event_status in('On Going','Upcoming')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getAllEvents', function(req,res){ //
+	let sql = "SELECT * , event_status.event_status, event_type.EventType FROM events INNER JOIN event_status ON events.event_status_id = event_status.event_status_id INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

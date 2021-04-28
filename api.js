@@ -730,14 +730,12 @@ app.post('/addBlog',function(req,res){
 })
 
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
-	console.log(1);
 	let sql = '';
-	if(listtype == 'multiple'){
+	if(req.params.listtype == 'multiple'){
 		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs" : sql = "SELECT * FROM blogs LIMIT 3";
 	}else{
 		sql = "SELECT * FROM blogs WHERE blog_id ="+req.params.cnt;
 	}
-	console.log(sql);
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

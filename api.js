@@ -11,8 +11,9 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const authorize = require('./authorization/authorization-middleware');
 const config = require('./authorization/config');
+const constant = require('./authorization/constant');
 const registration_email = require('./email_templates/registration');
-//const mailFormat = require('./common/mail');
+const contact_email = require('./email_templates/contact');
 
 app.set("views",path.join(__dirname,"views"));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -21,9 +22,6 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 //const DIR = './uploads/events';
-const DIR ='https://vecan.co/uploads/events';
-//const redirectlink = 'http://localhost:4200/register/';
-const redirectlink = 'http://singandshare.vecan.co/register/';
 
 var photopath = '';
 var usertableresp = '';
@@ -36,7 +34,7 @@ app.use(function(req, res, next) {
  
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, DIR);
+      cb(null, constant.DIR);
     },
     filename: (req, file, cb) => {
 	    //cb(null, file.fieldname + '-' + Date.now() + '.' + path.extname(file.originalname));	    
@@ -78,8 +76,8 @@ const db = mysql.createPool({
 const mailerdetails = nodemailer.createTransport({
     service: 'gmail',
  	auth: {
-        user: 'singandshare2021@gmail.com',
-        pass: 'sas@1234'
+        user: constant.info_email,
+        pass: constant.info_password
     }
 });
 
@@ -306,6 +304,40 @@ app.post('/registerUserForEvent',function(req,res){
 	});				
 })
 
+app.post('/updateProfile',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"' WHERE user_id="+req.body.user_id;
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let sql = "UPDATE usersdetails SET user_address = '"+req.body.profile_address+"', user_city = '"+req.body.profile_city+"', user_pincode = '"+req.body.profile_pincode+"', user_state = '"+req.body.profile_state+"' WHERE user_id="+req.body.user_id;
+
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						message: "User registered successfully."
+					});
+				}
+			});
+		}
+	});				
+})
+
 app.get('/getContact/:email',function(req,res){
 	let sql = "SELECT contact_id FROM contact WHERE contact_email_id = '"+req.params.email+"'";
 	
@@ -373,7 +405,7 @@ app.post('/addAttendance',function(req,res){
 
 app.post('/sendUserLink',function(req,res){
 	let param = {
-		"redirectlink" : redirectlink,
+		"redirectlink" : constant.redirectlink,
 		"url" : req.body.url
 	}
 	var description = registration_email.mentee_register(param);
@@ -669,6 +701,29 @@ app.get('/getEventStatus',function(req,res){
 				status: 200,
 				data: data,
 				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addBlog',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO blog (title, category, description, created_by_user_id, created_date) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Venue Added successfully."
 			});						
 		}
 	});

@@ -723,7 +723,31 @@ app.post('/addBlog',function(req,res){
 		}else{			
 			res.json({
 				status: 200,
-				message: "Venue Added successfully."
+				message: "Blog Added successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getBlogs/:listtype/:cnt',function(req,res){
+	let sql = '';
+	if(listtype == 'multiple'){
+		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs" : sql = "SELECT * FROM blogs LIMIT 3";
+	}else{
+		sql = "SELECT * FROM blogs WHERE blog_id ="+req.params.cnt;
+	}
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Blog fetched successfully."
 			});						
 		}
 	});

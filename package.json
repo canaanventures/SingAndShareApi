@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "SingShare API",
     "engines" : { 
-        "node" : "^12.16.1" 
+        "node" : "12.16.1" 
     },
     "dependencies": {
         "aws-sdk": "^2.857.0",

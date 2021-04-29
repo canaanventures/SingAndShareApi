@@ -712,7 +712,7 @@ app.post('/addBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO blog (title, category, description, created_by_user_id, created_date) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"')";
+	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

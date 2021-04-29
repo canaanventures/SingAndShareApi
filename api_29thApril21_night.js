@@ -47,24 +47,7 @@ var storage = multer.diskStorage({
 	    cb(null, 'event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname));
     }
 });
-var upload = multer({storage: storage});
-
-
-var blogstorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, constant.DIR);
-    },
-    filename: (req, file, cb) => {
-	    var dte = req.body.event_start_date;	    
-		var a = dte.split('T');
-	    var b = dte.split('T')[0].split('-').join('_');		
-	    var c = dte.split('T')[1].split(':').join('_');
-	    var reqdte = b+'_'+c;
-	    photopath = 'blogs/blog_' + req.body.title +'_'+ req.body.blog_id +'_'+ reqdte + path.extname(file.originalname);
-	    cb(null, 'blog_' + req.body.title +'_'+ req.body.blog_id +'_'+ reqdte + path.extname(file.originalname));
-    }
-});
-var blogupload = multer({storage: blogstorage}); 
+var upload = multer({storage: storage}); 
 
 //app.listen(port, () => console.log(`Example 123 app listening on port ${port}!`));
 
@@ -476,15 +459,6 @@ function imageFilter(req, file, cb) {
     }
     cb (null, true);
 }
-
-app.post('/addBlogImg',upload.single('image'),function(req,res){		
-	res.json({
-		status: 200,
-		message: "Blog Image Added successfully.",
-		filepath: photopath
-	});
-})
-
 
 app.post('/addEventImg',upload.single('image'),function(req,res){		
 	res.json({

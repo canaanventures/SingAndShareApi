@@ -52,16 +52,31 @@ var upload = multer({storage: storage});
 
 var blogstorage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, constant.DIR);
+    	//fs.mkdirsSync(constant.blogsDir);
+      	cb(null, constant.blogsDir);
     },
+    /* changeDest: function(dest, req, res) {
+	    var newDestination = dest + req.params.type;
+	    var stat = null;
+	    try {
+	        stat = fs.statSync(newDestination);
+	    } catch (err) {
+	        fs.mkdirSync(newDestination);
+	    }
+	    if (stat && !stat.isDirectory()) {
+	        throw new Error('Directory cannot be created because an inode of a different type exists at "' + dest + '"');
+	    }
+	    return newDestination
+	}, */
     filename: (req, file, cb) => {
-	    var dte = req.body.event_start_date;	    
-		var a = dte.split('T');
-	    var b = dte.split('T')[0].split('-').join('_');		
-	    var c = dte.split('T')[1].split(':').join('_');
-	    var reqdte = b+'_'+c;
-	    photopath = 'blogs/blog_' + req.body.title +'_'+ req.body.blog_id +'_'+ reqdte + path.extname(file.originalname);
-	    cb(null, 'blog_' + req.body.title +'_'+ req.body.blog_id +'_'+ reqdte + path.extname(file.originalname));
+	    var dte = new Date();
+	    //var title = req.body.title.split(' ').join('_');
+	    //var cat = req.body.category.split(' ').join('_');
+		var a = dte.getDate()+'_'+(dte.getMonth+1)+'_'+dte.getFullYear()+'_'+dte.getHours()+'_'+dte.getMinutes()+'_'+dte.getSeconds();
+		photopath = 'blogs/blog_' + a + '_' + path.extname(file.originalname);
+		cb(null, 'blog_' + a + '_' + path.extname(file.originalname));
+	    //photopath = 'blogs/blog_' + title +'_'+ a + '_' + path.extname(file.originalname);
+	    //cb(null, 'blog_' + title +'_'+ a + '_' + path.extname(file.originalname));
     }
 });
 var blogupload = multer({storage: blogstorage}); 
@@ -477,7 +492,7 @@ function imageFilter(req, file, cb) {
     cb (null, true);
 }
 
-app.post('/addBlogImg',upload.single('image'),function(req,res){		
+app.post('/addBlogImg',blogupload.single('image'),function(req,res){		
 	res.json({
 		status: 200,
 		message: "Blog Image Added successfully.",
@@ -739,7 +754,7 @@ app.post('/addBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"')";
+	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -757,7 +772,6 @@ app.post('/addBlog',function(req,res){
 })
 
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
-	console.log(1);
 	let sql = '';
 	if(req.params.listtype == 'multiple'){
 		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs" : sql = "SELECT * FROM blogs LIMIT 3";
@@ -799,6 +813,29 @@ app.post('/updateBlog',function(req,res){
 			res.json({
 				status: 200,
 				message: "Blog Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/disableBlog',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE blogs SET status = 'Disable', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE blog_id="+req.body.blog_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Blog Disabled successfully."
 			});						
 		}
 	});

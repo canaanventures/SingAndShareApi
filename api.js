@@ -73,8 +73,10 @@ var blogstorage = multer.diskStorage({
 	    //var title = req.body.title.split(' ').join('_');
 	    //var cat = req.body.category.split(' ').join('_');
 		var a = dte.getDate()+'_'+(dte.getMonth+1)+'_'+dte.getFullYear()+'_'+dte.getHours()+'_'+dte.getMinutes()+'_'+dte.getSeconds();
-		photopath = 'blogs/blog_' + a + '_' + path.extname(file.originalname);
-		cb(null, 'blog_' + a + '_' + path.extname(file.originalname));
+		photopath = 'blogs/blog_abc'+path.extname(file.originalname);
+		cb(null, 'blog_abc'+path.extname(file.originalname));
+		//photopath = 'blogs/blog_' + a + '_' + path.extname(file.originalname);
+		//cb(null, 'blog_' + a + '_' + path.extname(file.originalname));
 	    //photopath = 'blogs/blog_' + title +'_'+ a + '_' + path.extname(file.originalname);
 	    //cb(null, 'blog_' + title +'_'+ a + '_' + path.extname(file.originalname));
     }

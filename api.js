@@ -15,11 +15,12 @@ const constant = require('./authorization/constant');
 const registration_email = require('./email_templates/registration');
 const contact_email = require('./email_templates/contact');
 
-app.set("views",path.join(__dirname,"views"));
+//app.set("views",path.join(__dirname,"views"));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json()); 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use('./uploads',express.static('public'));
 
 //const DIR = './uploads/events';
 
@@ -53,7 +54,8 @@ var upload = multer({storage: storage});
 var blogstorage = multer.diskStorage({
     destination: (req, file, cb) => {
     	//fs.mkdirsSync(constant.blogsDir);
-      	cb(null, constant.blogsDir);
+      	//cb(null, constant.blogsDir);
+      	cb(null, './uploads/blogs');
     },
     /* changeDest: function(dest, req, res) {
 	    var newDestination = dest + req.params.type;

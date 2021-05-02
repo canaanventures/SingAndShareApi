@@ -186,7 +186,8 @@ app.post('/register',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"')";
+	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number,status) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"','"+req.body.status+"')";
+
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -245,8 +246,59 @@ app.post('/register',function(req,res){
 	});
 })
 
-app.get('/getUsers',function(req,res){
-	let sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.user_created_date,roles.role_name FROM users INNER JOIN roles ON users.role_id = roles.role_id";
+app.post('/changeUserStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE users SET status = '"+req.body.status+"', modified_by_user_id = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.userid;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "User "+req.body.status+"d successfully."
+			});						
+		}
+	});
+})
+
+app.post('/updateUser',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE users SET user_first_name = '"+req.body.first_name+"', user_last_name = '"+req.body.last_name+"', user_email_id = '"+req.body.email_id+"', role_id = '"+req.body.role+"', mentor_email_id = '"+req.body.mentor_email_id+"', modified_by_user_id = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.user_id;
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				message: "User updated successfully."
+			});
+		}
+	})
+})
+
+app.get('/getUsers/:type',function(req,res){
+	let sql;
+	if(req.params.type == 'all'){
+		sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.user_created_date,users.status, roles.role_name FROM users INNER JOIN roles ON users.role_id = roles.role_id";
+	}else{
+		sql = "SELECT * from users WHERE users.user_id = " + req.params.type;
+	}	
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -265,7 +317,7 @@ app.get('/getUsers',function(req,res){
 })
 
 app.post('/getProfile',function(req,res){
-	let sql = "SELECT * from users INNER JOIN usersdetails ON users.user_id = usersdetails.user_id WHERE user_email_id = '"+req.body.id+"'";
+	let sql = "SELECT * from users INNER JOIN usersdetails ON users.user_id = usersdetails.user_id INNER JOIN roles ON users.role_id = roles.role_id WHERE users.user_id = '"+req.body.id+"'";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

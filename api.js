@@ -119,63 +119,73 @@ const mailerdetails = nodemailer.createTransport({
 });
 
 app.post('/login',function(req,res){
-	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
-	db.getConnection(function (err, connection) {
-		if(err){
-            console.log(err);
-        }else{
-			connection.query(sql, function(err, data, fields) {
+	let sql = "SELECT status from users where user_email_id ='"+req.body.email+"'";
+	db.query(sql, function(err, data, fields) {
+		if(data[0].status == 'Disable'){
+			res.json({
+				status: 201,
+				message: "You are not authorized to login"
+			});
+		}else{
+			let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+			db.getConnection(function (err, connection) {
 				if(err){
-					res.json({
-						status: null,
-						message: err
-				   	});
-				}else{
-					let query = "SELECT user_password from users_password WHERE user_email_id = '"+req.body.email+"'";
-					connection.query(query, function(err, data, fields) {
+		            console.log(err);
+		        }else{
+					connection.query(sql, function(err, data, fields) {
 						if(err){
 							res.json({
 								status: null,
 								message: err
 						   	});
 						}else{
-							if(data[0].user_password == req.body.pass_word){					
-								let query = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
-								connection.query(query, function(err, data, fields) {
-									if(err){
-										res.json({
-											status: null,
-											message: err
-									   	});
-									}else{
-										const user = {
-											email : data[0].user_email_id,
-											user_id : data[0].user_id,
-											first_name : data[0].user_first_name,
-											last_name : data[0].user_last_name,
-											scopes:["customer:create","customer:read"]
-										}
-										jwt.sign(user, 'my secret key', (err,token) => {
-											res.json({
-												status: 200,
-												message: "User logged in successfully.",
-												token : token,
-												data: data
-											});
+							let query = "SELECT user_password from users_password WHERE user_email_id = '"+req.body.email+"'";
+							connection.query(query, function(err, data, fields) {
+								if(err){
+									res.json({
+										status: null,
+										message: err
+								   	});
+								}else{
+									if(data[0].user_password == req.body.pass_word){					
+										let query = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+										connection.query(query, function(err, data, fields) {
+											if(err){
+												res.json({
+													status: null,
+													message: err
+											   	});
+											}else{
+												const user = {
+													email : data[0].user_email_id,
+													user_id : data[0].user_id,
+													first_name : data[0].user_first_name,
+													last_name : data[0].user_last_name,
+													scopes:["customer:create","customer:read"]
+												}
+												jwt.sign(user, 'my secret key', (err,token) => {
+													res.json({
+														status: 200,
+														message: "User logged in successfully.",
+														token : token,
+														data: data
+													});
+												})
+											}									
 										})
-									}									
-								})
-							}else{
-								res.json({
-									status: 201,
-									message: "Incorrect password."
-								});
-							}
+									}else{
+										res.json({
+											status: 201,
+											message: "Incorrect password."
+										});
+									}
+								}
+							})
 						}
 					})
+					connection.release();
 				}
-			})
-			connection.release();
+			});
 		}
 	});
 })
@@ -275,7 +285,7 @@ app.post('/updateUser',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE users SET user_first_name = '"+req.body.first_name+"', user_last_name = '"+req.body.last_name+"', user_email_id = '"+req.body.email_id+"', role_id = '"+req.body.role+"', mentor_email_id = '"+req.body.mentor_email_id+"', modified_by_user_id = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.user_id;
+	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.first_name+"', users.user_last_name = '"+req.body.last_name+"', users.user_email_id = '"+req.body.email_id+"', users.role_id = '"+req.body.role+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){

@@ -907,4 +907,116 @@ app.post('/disableBlog',function(req,res) {
 	});
 })
 
+app.post('/addBranch',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO srs_branch (srs_name, user_id, created_by, created_on, status) VALUES ('"+req.body.srs_name+"','"+req.body.user_id+"','"+req.body.created_by+"','"+reqdte+"','Enable')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "A new Branch has been created successfully."
+			});						
+		}
+	});
+})
+
+app.post('/editBranch',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE srs_branch SET srs_name = '"+req.body.srs_name+"', user_id = '"+req.body.user_id+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE srs_id="+req.body.srs_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Branch Updated successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getBranches/:type',function(req,res){
+	let sql = '';
+	if(req.params.type == 'all'){
+		sql = "SELECT srs_branch.srs_id, srs_branch.srs_name, srs_branch.created_on,srs_branch.status , users.user_first_name, users.user_last_name FROM srs_branch INNER JOIN users ON users.user_id = srs_branch.user_id";
+	}else{
+		sql = "SELECT * from srs_branch";
+	}
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getCaptain',function(req,res){
+	let sql = "SELECT users.user_id, users.user_first_name, users.user_last_name FROM users INNER JOIN roles ON users.role_id = roles.role_id WHERE roles.role_name = 'captain'";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/changeBranchStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE srs_branch SET status = '"+req.body.status+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE srs_id="+req.body.srs_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Branch "+req.body.status+"d successfully."
+			});						
+		}
+	});
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

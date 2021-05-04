@@ -602,7 +602,7 @@ app.post('/addEvent',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, modified_user_id, modified_user_date, venue_name, event_status_id,event_type_id, poster_url) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.modified_user_id+"','"+reqdte+"','"+req.body.venue+"','"+req.body.event_status+"','"+req.body.event_type+"','"+req.body.imgurl+"')";
+	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_status_id,event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_status_id+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -614,6 +614,54 @@ app.post('/addEvent',function(req,res){
 			res.json({
 				status: 200,
 				message: "Event Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/editEvent',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_status_id = '"+req.body.event_status_id+"', event_type_id = '"+req.body.event_type_id+"' WHERE event_id="+req.body.event_id;
+    
+    //, poster_url = '"+req.body.imgurl+"' 
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Branch Updated successfully."
+			});						
+		}
+	});
+})
+
+app.post('/changeEventStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE events SET status = '"+req.body.status+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"' WHERE event_id="+req.body.event_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Event "+req.body.status+"d successfully."
 			});						
 		}
 	});
@@ -665,8 +713,15 @@ app.get('/getRole',function(req,res){ //,authorize("customer:read")
 	});
 })
 
-app.get('/getEvents', function(req,res){ //
-	let sql = "SELECT e.event_id, poster_url from events as e inner join event_status as es on e.event_status_id = es.event_status_id where es.event_status in('On Going','Upcoming')";
+app.get('/getEvents/:type', function(req,res){
+	let sql = '';
+	if(req.params.type == 'home'){
+		sql ="SELECT e.event_id, poster_url from events as e inner join event_status as es on e.event_status_id = es.event_status_id where es.event_status in('On Going','Upcoming')";
+	}else if(req.params.type == 'all'){
+		sql ="SELECT * , event_status.event_status, event_type.EventType FROM events INNER JOIN event_status ON events.event_status_id = event_status.event_status_id INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID"
+	}else{
+		sql ="SELECT * from events where event_id ="+req.params.type;
+	}
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -678,26 +733,7 @@ app.get('/getEvents', function(req,res){ //
 			res.json({
 				status: 200,
 				data: data,
-				message: "List fetched successfully."
-			});						
-		}
-	});
-})
-
-app.get('/getAllEvents', function(req,res){ //
-	let sql = "SELECT * , event_status.event_status, event_type.EventType FROM events INNER JOIN event_status ON events.event_status_id = event_status.event_status_id INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID";
-
-	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
-			res.json({
-				status: 200,
-				data: data,
-				message: "List fetched successfully."
+				message: "Event fetched successfully."
 			});						
 		}
 	});

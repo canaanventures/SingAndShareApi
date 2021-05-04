@@ -600,7 +600,7 @@ app.post('/addEvent',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, modified_user_id, modified_user_date, venue_id, event_status_id,event_type_id, poster_url) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.modified_user_id+"','"+reqdte+"','"+req.body.venue+"','"+req.body.event_status+"','"+req.body.event_type+"','"+req.body.imgurl+"')";
+	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, modified_user_id, modified_user_date, venue_name, event_status_id,event_type_id, poster_url) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.modified_user_id+"','"+reqdte+"','"+req.body.venue+"','"+req.body.event_status+"','"+req.body.event_type+"','"+req.body.imgurl+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

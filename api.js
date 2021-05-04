@@ -213,29 +213,42 @@ app.post('/register',function(req,res){
 						message: err
 				   	});
 				}else{
-					let param ={
-						"email_id" : req.body.user_email_id,
-						"password" : req.body.user_password
-					}
-					var description = registration_email.user_register(param);
+					let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
+					db.query(sql, function(err, data, fields) {
+						let sql = "INSERT INTO users (parent_id) VALUES ('"+data[0].user_id+"')";
+						db.query(sql, function(err, data, fields) {
+							if(err){
+								res.json({
+									status: null,
+									message: err
+							   	});
+							}else{
+								let param ={
+									"email_id" : req.body.user_email_id,
+									"password" : req.body.user_password
+								}
+								var description = registration_email.user_register(param);
 
-				   	var mailOptions={
-				        to: req.body.user_email_id,
-						subject: 'Welcome to SingAndShare !!!',
-						html: description
-				    }
+							   	var mailOptions={
+							        to: req.body.user_email_id,
+									subject: 'Welcome to SingAndShare !!!',
+									html: description
+							    }
 
-				    mailerdetails.sendMail(mailOptions, function(error, response){
-					    if(error){
-					        res.end("error");
-					    }else{
-					        res.json({
-								status: 200,
-								message: "You have been successfully registered. email has been sent to your mentioned ID."
-							});
-					    }
-					});
-					
+							    mailerdetails.sendMail(mailOptions, function(error, response){
+								    if(error){
+								        res.end("error");
+								    }else{
+								        res.json({
+											status: 200,
+											message: "You have been successfully registered. email has been sent to your mentioned ID."
+										});
+								    }
+								});
+							}
+						})
+					})
+
 					/*let sql = "INSERT INTO usersdetails (user_address,user_city,user_country) VALUES ('"+req.body.user_address+"','"+req.body.user_city+"','"+req.body.user_country+"')";
 					db.query(sql, function(err, data, fields) {
 						if(err){
@@ -285,20 +298,26 @@ app.post('/updateUser',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.first_name+"', users.user_last_name = '"+req.body.last_name+"', users.user_email_id = '"+req.body.email_id+"', users.role_id = '"+req.body.role+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
+	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.first_name+"', users.user_last_name = '"+req.body.last_name+"', users.user_email_id = '"+req.body.email_id+"', users.role_id = '"+req.body.role+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.srs_id = '"+req.body.srs_id+"', users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
 	
 	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{
-			res.json({
-				status: 200,
-				message: "User updated successfully."
+		let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.email_id+"'";
+		db.query(sql, function(err, data, fields) {
+			let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.email_id+"'";
+			db.query(sql, function(err, data, fields) {		
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						message: "User updated successfully."
+					});
+				}
 			});
-		}
+		});
 	})
 })
 

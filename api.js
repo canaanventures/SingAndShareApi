@@ -205,66 +205,56 @@ app.post('/register',function(req,res){
 				message: err
 		   	});
 		}else{
-			let sql = "INSERT INTO users_password (user_password,user_email_id) VALUES ('"+req.body.user_password+"','"+req.body.user_email_id+"')";
+			let sql = "INSERT INTO user_access (sns_access, user_access, event_access, attendance_access, calendar_add_access, calendar_access, blog_access, blog_approve_access, blog_status_access) VALUES ('0','0','0','0','0','0','0','0','0')";
 			db.query(sql, function(err, data, fields) {
-				if(err){
-					res.json({
-						status: null,
-						message: err
-				   	});
-				}else{
-					let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
-					db.query(sql, function(err, data, fields) {
-						let sql = "INSERT INTO users (parent_id) VALUES ('"+data[0].user_id+"')";
+
+				let sql = "INSERT INTO users_password (user_password,user_email_id) VALUES ('"+req.body.user_password+"','"+req.body.user_email_id+"')";
+				db.query(sql, function(err, data, fields) {
+
+					if(err){
+						res.json({
+							status: null,
+							message: err
+					   	});
+					}else{
+						let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
 						db.query(sql, function(err, data, fields) {
-							if(err){
-								res.json({
-									status: null,
-									message: err
-							   	});
-							}else{
-								let param ={
-									"email_id" : req.body.user_email_id,
-									"password" : req.body.user_password
-								}
-								var description = registration_email.user_register(param);
+							let sql = "INSERT INTO users (parent_id) VALUES ('"+data[0].user_id+"')";
+							db.query(sql, function(err, data, fields) {
+								if(err){
+									res.json({
+										status: null,
+										message: err
+								   	});
+								}else{
+									let param ={
+										"email_id" : req.body.user_email_id,
+										"password" : req.body.user_password
+									}
+									var description = registration_email.user_register(param);
 
-							   	var mailOptions={
-							        to: req.body.user_email_id,
-									subject: 'Welcome to SingAndShare !!!',
-									html: description
-							    }
-
-							    mailerdetails.sendMail(mailOptions, function(error, response){
-								    if(error){
-								        res.end("error");
-								    }else{
-								        res.json({
-											status: 200,
-											message: "You have been successfully registered. email has been sent to your mentioned ID."
-										});
+								   	var mailOptions={
+								        to: req.body.user_email_id,
+										subject: 'Welcome to SingAndShare !!!',
+										html: description
 								    }
-								});
-							}
-						})
-					})
 
-					/*let sql = "INSERT INTO usersdetails (user_address,user_city,user_country) VALUES ('"+req.body.user_address+"','"+req.body.user_city+"','"+req.body.user_country+"')";
-					db.query(sql, function(err, data, fields) {
-						if(err){
-							res.json({
-								status: null,
-								message: err
-						   	});
-						}else{
-							res.json({
-								status: 200,
-								message: "User registered successfully."
-							});
-						}
-					});*/
-				}
-			});
+								    mailerdetails.sendMail(mailOptions, function(error, response){
+									    if(error){
+									        res.end("error");
+									    }else{
+									        res.json({
+												status: 200,
+												message: "You have been successfully registered. email has been sent to your mentioned ID."
+											});
+									    }
+									});
+								}
+							})
+						})
+					}
+				});
+			})
 		}
 	});
 })
@@ -1119,6 +1109,48 @@ app.post('/addBlogCategory',function(req,res){
 
 app.get('/getBlogCategory',function(req,res){
 	let sql = "SELECT * FROM blog_category";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/updateAccess',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE user_access SET sns_access = '"+req.body.sns_access+"', user_access = '"+req.body.user_access+"', event_access = '"+req.body.event_access+"', attendance_access = '"+req.body.attendance_access+"', calendar_access = '"+req.body.calendar_access+"', calendar_add_access = '"+req.body.calendar_add_access+"', blog_access = '"+req.body.blog_access+"', blog_approve_access = '"+req.body.blog_approve_access+"', blog_change_status_access = '"+req.body.blog_status_access+"' WHERE user_id="+req.body.user_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Access assigned successfully."
+			});						
+		}
+	});
+})
+
+app.post('/getAccessList',function(req,res){
+	let sql = "SELECT * FROM user_access WHERE user_id = "+req.body.user_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

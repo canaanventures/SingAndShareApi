@@ -303,9 +303,8 @@ app.post('/updateUser',function(req,res){
 	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.first_name+"', users.user_last_name = '"+req.body.last_name+"', users.user_email_id = '"+req.body.email_id+"', users.role_id = '"+req.body.role+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.srs_id = "+srs+", users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
 	
 	db.query(sql, function(err, data, fields) {
-		let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.email_id+"'";
-		db.query(sql, function(err, data, fields) {
-			let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.email_id+"'";
+		if(req.body.mentor_email_id == ''){
+			let sql = "UPDATE users SET parent_id = '0' WHERE user_email_id ='"+req.body.email_id+"'";
 			db.query(sql, function(err, data, fields) {		
 				if(err){
 					res.json({
@@ -319,14 +318,33 @@ app.post('/updateUser',function(req,res){
 					});
 				}
 			});
-		});
+		}else{
+			let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
+			db.query(sql, function(err, data, fields) {
+				let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.email_id+"'";
+				db.query(sql, function(err, data, fields) {		
+					if(err){
+						res.json({
+							status: null,
+							message: err
+					   	});
+					}else{
+						res.json({
+							status: 200,
+							message: "User updated successfully."
+						});
+					}
+				});
+			});
+		}
 	})
 })
 
 app.get('/getUsers/:type',function(req,res){
 	let sql;
 	if(req.params.type == 'all'){
-		sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.user_created_date,users.status, roles.role_name FROM users INNER JOIN roles ON users.role_id = roles.role_id";
+		//sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.user_created_date,users.status, roles.role_name FROM users INNER JOIN roles ON users.role_id = roles.role_id";
+		sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id";
 	}else{
 		sql = "SELECT * from users WHERE users.user_id = " + req.params.type;
 	}	
@@ -602,7 +620,7 @@ app.post('/addEvent',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_status_id,event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_status_id+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
+	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -625,7 +643,7 @@ app.post('/editEvent',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_status_id = '"+req.body.event_status_id+"', event_type_id = '"+req.body.event_type_id+"' WHERE event_id="+req.body.event_id;
+	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"' WHERE event_id="+req.body.event_id;
     
     //, poster_url = '"+req.body.imgurl+"' 
 
@@ -716,9 +734,11 @@ app.get('/getRole',function(req,res){ //,authorize("customer:read")
 app.get('/getEvents/:type', function(req,res){
 	let sql = '';
 	if(req.params.type == 'home'){
-		sql ="SELECT e.event_id, poster_url from events as e inner join event_status as es on e.event_status_id = es.event_status_id where es.event_status in('On Going','Upcoming')";
+		//sql ="SELECT e.event_id, poster_url from events as e inner join event_status as es on e.event_status_id = es.event_status_id where es.event_status in('On Going','Upcoming')";
+
+		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , event_status.event_status, event_type.EventType FROM events INNER JOIN event_status ON events.event_status_id = event_status.event_status_id INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID"
+		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID"
 	}else{
 		sql ="SELECT * from events where event_id ="+req.params.type;
 	}
@@ -1080,7 +1100,7 @@ app.post('/addBlogCategory',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO blog_category (category_name, created_by, created_on) VALUES ('"+req.body.category_name+"','"+req.body.created_by+"','"+reqdte+"')";
+	let sql = "INSERT INTO blog_category (category_name, created_by, created_on, status) VALUES ('"+req.body.category_name+"','"+req.body.created_by+"','"+reqdte+"','Enable')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

@@ -730,7 +730,7 @@ app.get('/getEvents/:type', function(req,res){
 	}else if(req.params.type == 'all'){
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID"
 	}else{
-		sql ="SELECT * from events where event_id ="+req.params.type;
+		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}
 
 	db.query(sql, function(err, data, fields) {

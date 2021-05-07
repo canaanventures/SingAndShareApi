@@ -161,6 +161,7 @@ app.post('/login',function(req,res){
 													user_id : data[0].user_id,
 													first_name : data[0].user_first_name,
 													last_name : data[0].user_last_name,
+													srs_id : data[0].srs_id,
 													scopes:["customer:create","customer:read"]
 												}
 												jwt.sign(user, 'my secret key', (err,token) => {
@@ -338,6 +339,25 @@ app.get('/getUsers/:type',function(req,res){
 	}else{
 		sql = "SELECT * from users WHERE users.user_id = " + req.params.type;
 	}	
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{		
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully.",
+			});						
+		}
+	});
+})
+
+app.get('/attendanceUsers/:type',function(req,res){
+	let sql = "SELECT user_id, user_first_name, user_last_name from users WHERE status = 'Enable' and srs_id = " + req.params.type;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -622,6 +642,53 @@ app.post('/addEvent',function(req,res){
 			res.json({
 				status: 200,
 				message: "Event Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addCalendar',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO calendar (event_name, event_start_date, event_end_date,  description, created_by, created_on, venue_name) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Event Added successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getCalendar/:type', function(req,res){
+	let sql = '';
+	if(req.params.type == 'all'){
+		sql ="SELECT * from calendar";
+	}else{
+		sql ="SELECT * FROM calendar where calendar_id = " + req.params.type;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Event fetched successfully."
 			});						
 		}
 	});

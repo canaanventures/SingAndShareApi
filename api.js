@@ -534,7 +534,7 @@ app.post('/addAttendance',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO attendance (user_id, sns_name, meeting_date, no_of_people_attended, no_of_new_people_attended, created_date) VALUES ('"+req.body.user_id+"','"+req.body.sns_name+"','"+req.body.meeting_date+"','"+req.body.people_attended+"','"+req.body.new_people_attended+"','"+reqdte+"')";
+	let sql = "INSERT INTO meetingattendance (srs_id, meeting_date, attendees, new_attendees, created_by, created_on) VALUES ('"+req.body.srs_id+"','"+req.body.meeting_date+"','"+req.body.attendees+"','"+req.body.new_attendees+"','"+req.body.created_by+"','"+reqdte+"')";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -545,10 +545,30 @@ app.post('/addAttendance',function(req,res){
 		}else{
 			res.json({
 				status: 200,
-				message: "Added meeting details successfully."
+				message: "Added meeting details successfully.",
+				rowid: data.insertId
 			});
 		}
 	})
+})
+
+app.post('/addAttendees',function(req,res){
+	let sql = "INSERT INTO attendees (user_id,user_first_name,user_last_name,meeting_id) VALUES?";
+
+	db.query(sql, [req.body.vals], function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Meeting Details added successfully."
+			});						
+		}
+	});
 })
 
 app.post('/sendUserLink',function(req,res){

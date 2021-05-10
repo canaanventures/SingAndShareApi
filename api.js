@@ -992,10 +992,29 @@ app.post('/addBlog',function(req,res){
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	let sql = '';
 	if(req.params.listtype == 'multiple'){
-		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs" : sql = "SELECT * FROM blogs LIMIT 3";
+		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id" : sql = "SELECT * FROM blogs LIMIT 3";
 	}else{
-		sql = "SELECT * FROM blogs WHERE blog_id ="+req.params.cnt;
+		sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id LEFT JOIN users u ON b.created_by_user_id = u.user_id WHERE blog_id = "+req.params.cnt;
 	}
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Blog fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getApprovedBlogs',function(req,res){
+	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id AND approval_status = 'Y'";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1019,7 +1038,7 @@ app.post('/updateBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE blog_id="+req.body.blog_id;
+	let sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"' WHERE blog_id="+req.body.blog_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1042,7 +1061,7 @@ app.post('/disableBlog',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE blogs SET status = 'Disable', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE blog_id="+req.body.blog_id;
+	let sql = "UPDATE blogs SET status = '"+req.body.status+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE blog_id="+req.body.blog_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1053,7 +1072,7 @@ app.post('/disableBlog',function(req,res) {
 		}else{			
 			res.json({
 				status: 200,
-				message: "Blog Disabled successfully."
+				message: "Blog status changed successfully."
 			});						
 		}
 	});

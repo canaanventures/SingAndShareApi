@@ -1344,4 +1344,27 @@ app.post('/getAccessList',function(req,res){
 	});
 })
 
+app.post('/getReports',function(req,res){
+	let sql;
+
+	if(req.body.type == 'attendance'){
+		sql = "SELECT * from meetingattendance where month(meeting_date)="+req.body.val+" AND srs_id="+req.body.srs_id;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

@@ -972,8 +972,8 @@ app.post('/addBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable')";
-
+	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N')";
+ 
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -992,7 +992,7 @@ app.post('/addBlog',function(req,res){
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	let sql = '';
 	if(req.params.listtype == 'multiple'){
-		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id" : sql = "SELECT * FROM blogs LIMIT 3";
+		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id" : sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 1";
 	}else{
 		sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id LEFT JOIN users u ON b.created_by_user_id = u.user_id WHERE blog_id = "+req.params.cnt;
 	}
@@ -1014,7 +1014,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 })
 
 app.get('/getApprovedBlogs',function(req,res){
-	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id AND approval_status = 'Y'";
+	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id AND approval_status = 'Y' AND status = 'Enable'";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1073,6 +1073,76 @@ app.post('/disableBlog',function(req,res) {
 			res.json({
 				status: 200,
 				message: "Blog status changed successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addComment',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO comments (blog_id, name, email_id, blog_comment, added_on, approval_status) VALUES ('"+req.body.blog_id+"','"+req.body.name+"','"+req.body.email_id+"','"+req.body.blog_comment+"','"+reqdte+"','D')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Blog comment changed successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getComments/:type/:cnt',function(req,res){
+	let sql = '';
+	if(req.params.type == 'disapprove'){
+		sql = "SELECT * FROM comments";
+	}else{
+		sql = "SELECT * FROM comments WHERE blog_id = "+req.params.cnt+" AND approval_status='Y'";
+	}
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Comments fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/commentStatusChange',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE comments SET approved_by = '"+req.body.approved_by+"', approval_status = '"+req.body.approval_status+"', approved_on = '"+reqdte+"' WHERE comment_id="+req.body.comment_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Status of the comment changed successfully."
 			});						
 		}
 	});

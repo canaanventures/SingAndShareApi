@@ -966,11 +966,18 @@ app.get('/getEventStatus',function(req,res){
 	});
 })
 
+app.get('/getBlogImg', function(req, res){
+  const file = 'uploads/blogs/blog_abc.png';
+  res.sendfile(file); // Set disposition and send it.
+});
+
 app.post('/addBlog',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	//let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status,image_url) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N','"+req.body.imgurl+"')";
 
 	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N')";
  

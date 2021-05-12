@@ -16,11 +16,11 @@ const registration_email = require('./email_templates/registration');
 const contact_email = require('./email_templates/contact');
 
 //app.set("views",path.join(__dirname,"views"));
-app.use(bodyParser.urlencoded({extended:true}));
+//app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json()); 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
-app.use('./uploads',express.static('public'));
+//app.use('./uploads',express.static('public'));
 
 //const DIR = './uploads/events';
 
@@ -44,7 +44,7 @@ var storage = multer.diskStorage({
 	    var b = dte.split('T')[0].split('-').join('_');		
 	    var c = dte.split('T')[1].split(':').join('_');
 	    var reqdte = b+'_'+c;
-	    photopath = 'uploads/events/event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname);
+	    photopath = '/uploads/events/event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname);
 	    cb(null, 'event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname));
     }
 });
@@ -53,41 +53,17 @@ var upload = multer({storage: storage});
 
 var blogstorage = multer.diskStorage({
     destination: (req, file, cb) => {
-    	//fs.mkdirsSync(constant.blogsDir);
-      	//cb(null, constant.blogsDir);
       	cb(null, './uploads/blogs');
     },
-    /* changeDest: function(dest, req, res) {
-	    var newDestination = dest + req.params.type;
-	    var stat = null;
-	    try {
-	        stat = fs.statSync(newDestination);
-	    } catch (err) {
-	        fs.mkdirSync(newDestination);
-	    }
-	    if (stat && !stat.isDirectory()) {
-	        throw new Error('Directory cannot be created because an inode of a different type exists at "' + dest + '"');
-	    }
-	    return newDestination
-	}, */
     filename: (req, file, cb) => {
 	    var dte = new Date();
-	    //var title = req.body.title.split(' ').join('_');
-	    //var cat = req.body.category.split(' ').join('_');
-		var a = dte.getDate()+'_'+(dte.getMonth+1)+'_'+dte.getFullYear()+'_'+dte.getHours()+'_'+dte.getMinutes()+'_'+dte.getSeconds();
-		photopath = 'blogs/blog_abc'+path.extname(file.originalname);
-		cb(null, 'blog_abc'+path.extname(file.originalname));
-		//photopath = 'blogs/blog_' + a + '_' + path.extname(file.originalname);
-		//cb(null, 'blog_' + a + '_' + path.extname(file.originalname));
-	    //photopath = 'blogs/blog_' + title +'_'+ a + '_' + path.extname(file.originalname);
-	    //cb(null, 'blog_' + title +'_'+ a + '_' + path.extname(file.originalname));
+		var a = dte.getDate()+'_'+(dte.getMonth()+1)+'_'+dte.getFullYear()+'_'+dte.getHours()+'_'+dte.getMinutes()+'_'+dte.getSeconds();
+
+		photopath = '/uploads/blogs/blog_'+req.params.title+'_'+req.params.cat+'_'+a+path.extname(file.originalname);
+		cb(null, 'blog_'+req.params.title+'_'+req.params.cat+'_'+a+path.extname(file.originalname));
     }
 });
 var blogupload = multer({storage: blogstorage}); 
-
-//app.listen(port, () => console.log(`Example 123 app listening on port ${port}!`));
-
-//host: 'server1.cjeast.com',
 
 const db = mysql.createPool({
 	host: '65.175.118.74',
@@ -627,7 +603,7 @@ function imageFilter(req, file, cb) {
     cb (null, true);
 }
 
-app.post('/addBlogImg',blogupload.single('image'),function(req,res){		
+app.post('/addBlogImg/:title/:cat',blogupload.single('image'),function(req,res){	
 	res.json({
 		status: 200,
 		message: "Blog Image Added successfully.",
@@ -966,9 +942,12 @@ app.get('/getEventStatus',function(req,res){
 	});
 })
 
-app.get('/getBlogImg', function(req, res){
-  const file = 'uploads/blogs/blog_abc.png';
-  res.sendfile(file); // Set disposition and send it.
+app.get('/getBlogImg/:id', function(req, res){
+	let sql = "SELECT image_url from blogs WHERE blog_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+		const file = data[0].image_url;
+  		res.sendFile(__dirname + file);
+	});
 });
 
 app.post('/addBlog',function(req,res){
@@ -977,9 +956,9 @@ app.post('/addBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	//let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status,image_url) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N','"+req.body.imgurl+"')";
+	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status,image_url) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N','"+req.body.imgurl+"')";
 
-	let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N')";
+	//let sql = "INSERT INTO blogs (title, category, description, created_by_user_id, created_date,status,approval_status) VALUES ('"+req.body.title+"','"+req.body.category+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','Enable','N')";
  
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1045,7 +1024,12 @@ app.post('/updateBlog',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"' WHERE blog_id="+req.body.blog_id;
+	let sql;
+	if(req.body.imgurl == ''){
+		sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"' WHERE blog_id="+req.body.blog_id;
+	}else{
+		sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"', image_url ='"+req.body.imgurl+"' WHERE blog_id="+req.body.blog_id;
+	}
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

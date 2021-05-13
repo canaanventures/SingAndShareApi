@@ -63,7 +63,32 @@ var blogstorage = multer.diskStorage({
 		cb(null, 'blog_'+req.params.title+'_'+req.params.cat+'_'+a+path.extname(file.originalname));
     }
 });
-var blogupload = multer({storage: blogstorage}); 
+var blogupload = multer({storage: blogstorage});
+
+var userstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/profile');
+    },
+    filename: (req, file, cb) => {
+	    photopath = '/uploads/profile/user_'+req.params.user_id+path.extname(file.originalname);
+		cb(null, 'user_'+req.params.user_id+path.extname(file.originalname));
+    }
+});
+var userupload = multer({storage: userstorage}); 
+
+
+
+var lmscatstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/lms/category');
+    },
+    filename: (req, file, cb) => {
+	    photopath = '/uploads/lms/category/cat_'+req.params.cat_name+path.extname(file.originalname);
+		cb(null, 'cat_'+req.params.cat_name+path.extname(file.originalname));
+    }
+});
+var lmscatupload = multer({storage: lmscatstorage}); 
+
 
 const db = mysql.createPool({
 	host: '65.175.118.74',
@@ -433,8 +458,13 @@ app.post('/updateProfile',function(req,res){
 	month < 10 ? mon = "0"+month : mon = month;
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+	let sql;
 
-	let sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"' WHERE user_id="+req.body.user_id;
+	if(req.body.image_url == ''){
+		sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"' WHERE user_id="+req.body.user_id;
+	}else{
+		sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"', image_url = '"+req.body.image_url+"' WHERE user_id="+req.body.user_id;
+	}
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -607,6 +637,14 @@ app.post('/addBlogImg/:title/:cat',blogupload.single('image'),function(req,res){
 	res.json({
 		status: 200,
 		message: "Blog Image Added successfully.",
+		filepath: photopath
+	});
+})
+
+app.post('/addUserImg/:user_id/',userupload.single('image'),function(req,res){	
+	res.json({
+		status: 200,
+		message: "User Image Updated successfully.",
 		filepath: photopath
 	});
 })
@@ -950,6 +988,19 @@ app.get('/getBlogImg/:id', function(req, res){
 	});
 });
 
+app.get('/getUserImg/:id', function(req, res){
+	let sql = "SELECT image_url from users WHERE user_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+		const file = data[0].image_url;
+  		res.sendFile(__dirname + file);
+	});
+});
+
+app.post('/getBlogMultiImg', function(req, res){
+	const file = req.body.image_url;
+	res.sendFile(__dirname + file);
+});
+
 app.post('/addBlog',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
@@ -1095,7 +1146,7 @@ app.post('/addComment',function(req,res) {
 app.get('/getComments/:type/:cnt',function(req,res){
 	let sql = '';
 	if(req.params.type == 'disapprove'){
-		sql = "SELECT * FROM comments";
+		sql = "SELECT * FROM comments WHERE blog_id = "+req.params.cnt+"";
 	}else{
 		sql = "SELECT * FROM comments WHERE blog_id = "+req.params.cnt+" AND approval_status='Y'";
 	}
@@ -1353,6 +1404,121 @@ app.post('/getReports',function(req,res){
 				status: 200,
 				data: data,
 				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+/* Training (LMS) */
+app.post('/addLMSCategory',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO Lms_Category (category_name, category_description, category_image_url, created_by, created_on, category_status) VALUES ('"+req.body.category_name+"','"+req.body.category_description+"','"+req.body.category_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Category Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addTrainingCatImg/:cat_name',lmscatupload.single('image'),function(req,res){	
+	res.json({
+		status: 200,
+		message: "Category Image Added successfully.",
+		filepath: photopath
+	});
+})
+
+app.get('/getLMSCategory/:cnt',function(req,res){
+	let sql;
+	if(req.params.cnt == 'all'){
+		sql = "SELECT * from Lms_Category";
+	}else{
+		sql = "SELECT * from Lms_Category WHERE row_id = "+req.params.cnt;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/changeLMSCatStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE Lms_Category SET category_status = '"+req.body.category_status+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Category status changed successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getLMSCategoryImg/:id', function(req, res){
+	let sql = "SELECT category_image_url from Lms_Category WHERE row_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+		const file = data[0].category_image_url;
+  		res.sendFile(__dirname + file);
+	});
+});
+
+app.post('/updateLMSCategory',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql;
+	if(req.body.imgurl == ''){
+		sql = "UPDATE Lms_Category SET category_name = '"+req.body.category_name+"', category_description = '"+req.body.category_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}else{
+		sql = "UPDATE Lms_Category SET category_name = '"+req.body.category_name+"', category_description = '"+req.body.category_description+"', modified_by = '"+req.body.modified_by+"', category_image_url = '"+req.body.category_image_url+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Category Updated successfully."
 			});						
 		}
 	});

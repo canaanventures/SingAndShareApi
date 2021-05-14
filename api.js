@@ -76,8 +76,6 @@ var userstorage = multer.diskStorage({
 });
 var userupload = multer({storage: userstorage}); 
 
-
-
 var lmscatstorage = multer.diskStorage({
     destination: (req, file, cb) => {
       	cb(null, './uploads/lms/category');
@@ -87,7 +85,29 @@ var lmscatstorage = multer.diskStorage({
 		cb(null, 'cat_'+req.params.cat_name+path.extname(file.originalname));
     }
 });
-var lmscatupload = multer({storage: lmscatstorage}); 
+var lmscatupload = multer({storage: lmscatstorage});
+
+var lmscorstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/lms/course');
+    },
+    filename: (req, file, cb) => {
+	    photopath = '/uploads/lms/course/cor_'+req.params.course_name+path.extname(file.originalname);
+		cb(null, 'cor_'+req.params.course_name+path.extname(file.originalname));
+    }
+});
+var lmscourseupload = multer({storage: lmscorstorage});
+
+var lmslesstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/lms/lesson');
+    },
+    filename: (req, file, cb) => {
+	    photopath = '/uploads/lms/lesson/lesson_'+req.params.lesson_name+path.extname(file.originalname);
+		cb(null, 'lesson_'+req.params.lesson_name+path.extname(file.originalname));
+    }
+});
+var lmslessonupload = multer({storage: lmslesstorage});
 
 
 const db = mysql.createPool({
@@ -1409,7 +1429,7 @@ app.post('/getReports',function(req,res){
 	});
 })
 
-/* Training (LMS) */
+/* Training Category (LMS) */
 app.post('/addLMSCategory',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
@@ -1445,6 +1465,8 @@ app.get('/getLMSCategory/:cnt',function(req,res){
 	let sql;
 	if(req.params.cnt == 'all'){
 		sql = "SELECT * from Lms_Category";
+	}else if(req.params.cnt == 'Y'){
+		sql = "SELECT * from Lms_Category WHERE category_status = '"+req.params.cnt+"'";
 	}else{
 		sql = "SELECT * from Lms_Category WHERE row_id = "+req.params.cnt;
 	}
@@ -1522,6 +1544,318 @@ app.post('/updateLMSCategory',function(req,res){
 			});						
 		}
 	});
+});
+
+
+/* Training Course (LMS) */
+app.post('/addLMSCourse',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO Lms_Course (course_name, category_id, course_description, course_image_url, created_by, created_on, course_status) VALUES ('"+req.body.course_name+"','"+req.body.category_id+"','"+req.body.course_description+"','"+req.body.course_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Category Added successfully."
+			});						
+		}
+	});
 })
+
+app.post('/addTrainingCourseImg/:course_name',lmscourseupload.single('image'),function(req,res){
+	res.json({
+		status: 200,
+		message: "Course Image Added successfully.",
+		filepath: photopath
+	});
+})
+
+app.get('/getLMSCourseImg/:id', function(req, res){
+	let sql = "SELECT course_image_url from Lms_Course WHERE row_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+		const file = data[0].course_image_url;
+  		res.sendFile(__dirname + file);
+	});
+});
+
+app.get('/getLMSCourse/:cnt',function(req,res){
+	let sql;
+	if(req.params.cnt == 'all'){
+		sql = "SELECT * from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id";
+	}else if(req.params.cnt == 'Y'){
+		sql = "SELECT * from Lms_Course WHERE course_status = '"+req.params.cnt+"'";
+	}else{
+		sql = "SELECT * from Lms_Course WHERE row_id = "+req.params.cnt;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/changeLMSCourseStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE Lms_Course SET course_status = '"+req.body.course_status+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Course status changed successfully."
+			});						
+		}
+	});
+})
+
+app.post('/updateLMSCourse',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql;
+	if(req.body.course_image_url == ''){
+		sql = "UPDATE Lms_Course SET course_name = '"+req.body.course_name+"',category_id = '"+req.body.category_id+"', course_description = '"+req.body.course_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}else{
+		sql = "UPDATE Lms_Course SET course_name = '"+req.body.course_name+"',category_id = '"+req.body.category_id+"', course_description = '"+req.body.course_description+"', modified_by = '"+req.body.modified_by+"', course_image_url = '"+req.body.course_image_url+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Course Updated successfully."
+			});						
+		}
+	});
+});
+
+
+/* Training Lesson (LMS) */
+app.post('/addLMSLesson',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Lesson Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addTrainingLessonImg/:lesson_name',lmslessonupload.single('image'),function(req,res){
+	res.json({
+		status: 200,
+		message: "Lesson Image Added successfully.",
+		filepath: photopath
+	});
+})
+
+app.get('/getLMSLessonImg/:id', function(req, res){
+	let sql = "SELECT lesson_image_url from Lms_Lesson WHERE row_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+		const file = data[0].lesson_image_url;
+  		res.sendFile(__dirname + file);
+	});
+});
+
+app.get('/getLMSLesson/:cnt',function(req,res){
+	let sql;
+	if(req.params.cnt == 'all'){
+		sql = "SELECT * from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id";
+	}else if(req.params.cnt == 'Y'){
+		sql = "SELECT * from Lms_Lesson WHERE lesson_status = '"+req.params.cnt+"'";
+	}else{
+		sql = "SELECT * from Lms_Lesson WHERE row_id = "+req.params.cnt;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/changeLMSLessonStatus',function(req,res) {
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE Lms_Lesson SET lesson_status = '"+req.body.lesson_status+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Course status changed successfully."
+			});						
+		}
+	});
+})
+
+app.post('/updateLMSLesson',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql;
+	if(req.body.lesson_image_url == ''){
+		sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}else{
+		sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', lesson_image_url = '"+req.body.lesson_image_url+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Lesson Updated successfully."
+			});						
+		}
+	});
+});
+
+/* Training Class (LMS) */
+/*app.get('/getInstructors',function(req,res){
+	let sql = "SELECT user_id, user_first_name, user_last_name FROM users WHERE role_id = 9 AND status='Enable'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+});
+
+app.post('/addLMSClass',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "INSERT INTO Lms_Class (class_name, start_date, end_date, image_url, zoom_link, description, category_id, instructor_id, created_by, created_on, class_status) VALUES ('"+req.body.class_name+"','"+req.body.start_date+"','"+req.body.end_date+"','"+req.body.image_url+"','"+req.body.zoom_link+"','"+req.body.description+"','"+req.body.category+"','"+req.body.instructor+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Class Added successfully."
+			});						
+		}
+	});
+})
+
+app.post('/addTrainingCourseImg/:course_name',lmscorupload.single('image'),function(req,res){	
+	res.json({
+		status: 200,
+		message: "Course Image Added successfully.",
+		filepath: photopath
+	});
+})
+
+app.get('/getLMSClass/:cnt',function(req,res){
+	let sql;
+	if(req.params.cnt == 'all'){
+		sql = "SELECT * from Lms_Class a LEFT JOIN Lms_Category b oN a.category_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id";
+	}else if(req.params.cnt == 'Y'){
+		sql = "SELECT * from Lms_Category WHERE category_status = '"+req.params.cnt+"'";
+	}else{
+		sql = "SELECT * from Lms_Category WHERE row_id = "+req.params.cnt;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+}) */
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

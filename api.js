@@ -1672,7 +1672,7 @@ app.post('/addLMSLesson',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, 	, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1708,7 +1708,7 @@ app.get('/getLMSLessonImg/:id', function(req, res){
 app.get('/getLMSLesson/:cnt',function(req,res){
 	let sql;
 	if(req.params.cnt == 'all'){
-		sql = "SELECT * from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id";
+		sql = "SELECT *, CONCAT(a.row_id) AS lesson_id from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id";
 	}else if(req.params.cnt == 'Y'){
 		sql = "SELECT * from Lms_Lesson WHERE lesson_status = '"+req.params.cnt+"'";
 	}else{

@@ -180,7 +180,7 @@ app.post('/login',function(req,res){
 								   	});
 								}else{
 									if(data[0].user_password == req.body.pass_word){					
-										let query = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+										let query = "SELECT * from users a INNER JOIN roles b ON a.role_id = b.role_id WHERE user_email_id = '"+req.body.email+"'";
 										connection.query(query, function(err, data, fields) {
 											if(err){
 												res.json({
@@ -194,6 +194,8 @@ app.post('/login',function(req,res){
 													first_name : data[0].user_first_name,
 													last_name : data[0].user_last_name,
 													srs_id : data[0].srs_id,
+													role_id : data[0].role_id,
+													role_name : data[0].role_name,
 													scopes:["customer:create","customer:read"]
 												}
 												jwt.sign(user, 'my secret key', (err,token) => {
@@ -2021,8 +2023,8 @@ app.get('/disableMentee/:user_id/:id',function(req,res) {
 })
 
 /* Mentee Page */
-app.get('/getCourseForMentees/:id',function(req,res){
-	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND a.mentee_status = 'Y'";
+app.get('/getUpComingCourseForMentees/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND a.mentee_status = 'Y' AND DATE(c.start_date) > DATE(NOW())";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -2034,6 +2036,71 @@ app.get('/getCourseForMentees/:id',function(req,res){
 				status: 200,
 				data: data,
 				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getOnGoingCourseForMentees/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND a.mentee_status = 'Y' AND DATE(c.start_date) <= DATE(NOW()) AND DATE(c.end_date) >= DATE(NOW())";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/downloadPDF/:id', function(req, res){
+	let sql = "SELECT document_url from Lms_Class WHERE row_id = "+req.params.id;
+	db.query(sql, function(err, data, fields) {
+  		const file = data[0].document_url;
+  		fs.readFile(__dirname + file , function (err,data){
+            res.contentType("application/pdf");
+            res.send(data);
+        });
+	});
+});
+
+app.get('/getCourseDetailsForMentees/:id',function(req,res){
+	let sql = "SELECT *, CONCAT(b.row_id) AS class_id FROM Lms_Course a INNER JOIN Lms_Class b ON a.row_id = b.course_id WHERE a.row_id = "+ req.params.id;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Details fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getLessonsForMentees/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Lesson WHERE course_id = "+ req.params.id;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Details fetched successfully."
 			});						
 		}
 	});

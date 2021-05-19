@@ -1992,7 +1992,7 @@ app.post('/updateLMSClass',function(req,res){
 			res.json({
 				status: 200,
 				message: "Class Updated successfully."
-			});						
+			});
 		}
 	});
 });
@@ -2015,6 +2015,25 @@ app.get('/disableMentee/:user_id/:id',function(req,res) {
 			res.json({
 				status: 200,
 				message: "Class status changed successfully."
+			});						
+		}
+	});
+})
+
+/* Mentee Page */
+app.get('/getCourseForMentees/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id = " + req.params.id + " AND a.mentee_status = 'Y'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
 			});						
 		}
 	});

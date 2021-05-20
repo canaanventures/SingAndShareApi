@@ -1878,6 +1878,25 @@ app.get('/getLMSClass/:cnt',function(req,res){
 	});
 })
 
+app.get('/getLMSClassList/:id',function(req,res){
+	let sql = "SELECT *, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = " + req.params.id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
 app.post('/changeLMSClassStatus',function(req,res) {
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
@@ -1902,30 +1921,51 @@ app.post('/changeLMSClassStatus',function(req,res) {
 })
 
 app.post('/addMenteeToClass',function(req,res) {
-	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
-	month < 10 ? mon = "0"+month : mon = month;
-	dte < 10 ? dt = "0"+dte : dt = dte;
-	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+	if(req.body.vals.length == 0){
+		let sql = "UPDATE Lms_Mentees SET mentee_status = 'N' WHERE class_id = "+req.body.class_id;
+		db.query(sql, function(err, data, fields) {
+			if(err){
+				res.json({
+					status: null,
+					message: err
+			   	});
+			}else{			
+				res.json({
+					status: 200,
+					message: "Mentees List has been updated successfully."
+				});						
+			}
+		});
+	}else{
+		var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+		month < 10 ? mon = "0"+month : mon = month;
+		dte < 10 ? dt = "0"+dte : dt = dte;
+		var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Mentees (mentee_id, mentee_first_name, mentee_last_name, instructor_id, class_id, category_id, course_id, created_by, added_on, mentee_status) VALUES?";
+		let sql = "DELETE FROM Lms_Mentees WHERE class_id = "+req.body.class_id;
+		
+		db.query(sql, function(err, data, fields) {
+			let sql = "INSERT INTO Lms_Mentees (mentee_id, mentee_first_name, mentee_last_name, instructor_id, class_id, category_id, course_id, created_by, added_on, mentee_status) VALUES?";
 
-	db.query(sql, [req.body.vals], function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
-			res.json({
-				status: 200,
-				message: "Mentees added successfully."
-			});						
-		}
-	});
+			db.query(sql, [req.body.vals], function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{			
+					res.json({
+						status: 200,
+						message: "Mentees added successfully."
+					});						
+				}
+			});
+		})
+	}
 })
 
 app.get('/getMentees/:instructor_id/:sns_id',function(req,res){
-	let sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.parent_id from users WHERE users.role_id = 10 AND users.parent_id = " + req.params.instructor_id + " AND users.srs_id = " + req.params.sns_id+" AND users.status = 'Enable'";
+	let sql = "SELECT users.user_id, users.user_first_name, users.user_last_name, users.parent_id from users WHERE users.parent_id = " + req.params.instructor_id + " AND users.srs_id = " + req.params.sns_id+" AND users.status = 'Enable'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

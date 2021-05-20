@@ -1878,6 +1878,60 @@ app.get('/getLMSClass/:cnt',function(req,res){
 	});
 })
 
+app.get('/getLMSClassLesson/:id',function(req,res){
+	let sql = "SELECT c.row_id, c.lesson_name FROM Lms_Class a INNER JOIN Lms_Course b ON a.course_id = b.row_id INNER JOIN Lms_Lesson c WHERE a.row_id = " + req.params.id;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Lesson List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.post('/updateLessonStatus',function(req,res){
+	let sql = "INSERT INTO Lms_Class_Lesson (class_id,lesson_id,instructor_id,lesson_status, completion_date) VALUES ('"+req.body.class_id+"','"+req.body.lesson_id+"','"+req.body.instructor_id+"','"+req.body.lesson_status+"',NOW())";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Lesson Status Updated successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getActiveLesson/:id',function(req,res){
+	let sql = "SELECT lesson_status,lesson_id from Lms_Class_Lesson WHERE class_id = " + req.params.id;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
 app.get('/getLMSClassList/:id',function(req,res){
 	let sql = "SELECT *, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = " + req.params.id;
 
@@ -1943,7 +1997,7 @@ app.post('/addMenteeToClass',function(req,res) {
 		var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
 		let sql = "DELETE FROM Lms_Mentees WHERE class_id = "+req.body.class_id;
-		
+
 		db.query(sql, function(err, data, fields) {
 			let sql = "INSERT INTO Lms_Mentees (mentee_id, mentee_first_name, mentee_last_name, instructor_id, class_id, category_id, course_id, created_by, added_on, mentee_status) VALUES?";
 

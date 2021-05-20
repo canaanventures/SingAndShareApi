@@ -143,11 +143,18 @@ const db = mysql.createPool({
 });*/
 
 const mailerdetails = nodemailer.createTransport({
-    service: 'gmail',
+    //service: 'gmail',
+    host: "smtp.gmail.com",
+    // host: "smtp.office365.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
  	auth: {
         user: constant.info_email,
         pass: constant.info_password
-    }
+    },
+	tls: {
+	    ciphers: 'SSLv3'
+	}
 });
 
 app.post('/login',function(req,res){

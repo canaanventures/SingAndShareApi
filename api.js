@@ -2207,4 +2207,47 @@ app.get('/getLessonsForMentees/:id',function(req,res){
 	});
 })
 
+/* PCS */
+app.post('/addPCS',function(req,res){
+	let sql = "INSERT INTO pcs (user_id,name_of_user,relation_with_user,city,state,current_status,pcs_description,created_on,status) VALUES ('"+req.body.user_id+"','"+req.body.name+"','"+req.body.relation+"','"+req.body.city+"','"+req.body.state+"','"+req.body.action_status+"','"+req.body.description+"',NOW(),'"+req.body.status+"')"
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Information Added Successfully."
+			});
+		}
+	});
+});
+
+app.get('/getPCS/:type',function(req,res){
+	let sql;
+	if(req.params.type == 'all'){
+		sql = "SELECT * FROM pcs";
+	}else{
+		sql = "SELECT * FROM pcs WHERE pcs_id = "+ req.params.type;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Details fetched successfully."
+			});						
+		}
+	});
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

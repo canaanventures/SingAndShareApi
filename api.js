@@ -1827,7 +1827,7 @@ app.post('/addLMSClass',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Class (class_name, start_date, end_date, connection_link, description, course_id, instructor_id, created_by, created_on, class_status, document_url) VALUES ('"+req.body.class_name+"','"+req.body.start_date+"','"+req.body.end_date+"','"+req.body.connection_link+"','"+req.body.description+"','"+req.body.course_id+"','"+req.body.instructor_id+"','"+req.body.created_by+"','"+reqdte+"','Y','"+req.body.document_url+"')";
+	let sql = "INSERT INTO Lms_Class (class_name, start_date, end_date, connection_link, description, course_id, instructor_id, created_by, created_on, class_status, class_type) VALUES ('"+req.body.class_name+"','"+req.body.start_date+"','"+req.body.end_date+"','"+req.body.connection_link+"','"+req.body.description+"','"+req.body.course_id+"','"+req.body.instructor_id+"','"+req.body.created_by+"','"+reqdte+"','Y','"+req.body.class_type+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1843,6 +1843,48 @@ app.post('/addLMSClass',function(req,res){
 		}
 	});
 })
+
+app.post('/generateCode',function(req,res) {
+	let sql = "INSERT INTO generateClassCode (course_name, class_start_date) VALUES ('"+req.body.course_name+"','"+req.body.class_start_date_mon_yr+"')";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data.insertId,
+				message: "Code Generated Successfully"
+			});						
+		}
+	});
+})
+
+app.post('/updateLMSClass',function(req,res){
+	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+	month < 10 ? mon = "0"+month : mon = month;
+	dte < 10 ? dt = "0"+dte : dt = dte;
+	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+	let sql = "UPDATE Lms_Class SET class_name = '"+req.body.class_name+"',course_id = '"+req.body.course_id+"',start_date = '"+req.body.start_date+"', end_date = '"+req.body.end_date+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"', class_type = '"+req.body.class_type+"' WHERE row_id="+req.body.row_id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				message: "Class Updated successfully."
+			});
+		}
+	});
+});
 
 app.post('/addTrainingClassDoc/:class_name/:cnt',lmsclassupload.single('image'),function(req,res){	
 	res.json({
@@ -1879,7 +1921,7 @@ app.get('/getLMSClass/:cnt',function(req,res){
 })
 
 app.get('/getLMSClassLesson/:id',function(req,res){
-	let sql = "SELECT c.row_id, c.lesson_name FROM Lms_Class a INNER JOIN Lms_Course b ON a.course_id = b.row_id INNER JOIN Lms_Lesson c WHERE a.row_id = " + req.params.id;
+	let sql = "SELECT a.row_id, a.lesson_name FROM Lms_Lesson a INNER JOIN Lms_Class b ON a.course_id = b.course_id WHERE b.row_id = " + req.params.id;
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -2071,34 +2113,6 @@ app.get('/getLmsClassMentees/:class_id',function(req,res){
 		}
 	});
 })
-
-app.post('/updateLMSClass',function(req,res){
-	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
-	month < 10 ? mon = "0"+month : mon = month;
-	dte < 10 ? dt = "0"+dte : dt = dte;
-	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
-
-	let sql;
-	if(req.body.document_url == ''){
-		sql = "UPDATE Lms_Class SET class_name = '"+req.body.class_name+"',course_id = '"+req.body.course_id+"',start_date = '"+req.body.start_date+"', end_date = '"+req.body.end_date+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
-	}else{
-		sql = "UPDATE Lms_Class SET class_name = '"+req.body.class_name+"',course_id = '"+req.body.course_id+"',start_date = '"+req.body.start_date+"', end_date = '"+req.body.end_date+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"', document_url = '"+req.body.document_url+"' WHERE row_id="+req.body.row_id;
-	}
-
-	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
-			res.json({
-				status: 200,
-				message: "Class Updated successfully."
-			});
-		}
-	});
-});
 
 app.get('/disableMentee/:user_id/:id',function(req,res) {
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';

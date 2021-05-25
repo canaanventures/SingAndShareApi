@@ -1920,6 +1920,25 @@ app.get('/getLMSClass/:cnt',function(req,res){
 	});
 })
 
+app.get('/getAllLMSClass',function(req,res){
+	let sql = "SELECT a.class_name, b.course_name, c.user_first_name, c.user_last_name, a.start_date, a.end_date, a.class_status, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
 app.get('/getLMSClassLesson/:id',function(req,res){
 	let sql = "SELECT a.row_id, a.lesson_name FROM Lms_Lesson a INNER JOIN Lms_Class b ON a.course_id = b.course_id WHERE b.row_id = " + req.params.id;
 	db.query(sql, function(err, data, fields) {

@@ -1827,7 +1827,7 @@ app.post('/addLMSClass',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Class (class_name, start_date, end_date, connection_link, description, course_id, instructor_id, created_by, created_on, class_status, class_type) VALUES ('"+req.body.class_name+"','"+req.body.start_date+"','"+req.body.end_date+"','"+req.body.connection_link+"','"+req.body.description+"','"+req.body.course_id+"','"+req.body.instructor_id+"','"+req.body.created_by+"','"+reqdte+"','Y','"+req.body.class_type+"')";
+	let sql = "INSERT INTO Lms_Class (class_name, start_date, end_date, connection_link, description, course_id, instructor_id, created_by, created_on, class_status, class_type, category_id) VALUES ('"+req.body.class_name+"','"+req.body.start_date+"','"+req.body.end_date+"','"+req.body.connection_link+"','"+req.body.description+"','"+req.body.course_id+"','"+req.body.instructor_id+"','"+req.body.created_by+"','"+reqdte+"','Y','"+req.body.class_type+"','"+req.body.cat_id+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1839,6 +1839,25 @@ app.post('/addLMSClass',function(req,res){
 			res.json({
 				status: 200,
 				message: "Class Added successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getCourseFromCat/:id',function(req,res){
+	let sql = "SELECT row_id, course_name FROM Lms_Course WHERE category_id = " + req.params.id +" AND course_status = 'Y'";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
 			});						
 		}
 	});
@@ -1869,7 +1888,7 @@ app.post('/updateLMSClass',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE Lms_Class SET class_name = '"+req.body.class_name+"',course_id = '"+req.body.course_id+"',start_date = '"+req.body.start_date+"', end_date = '"+req.body.end_date+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"', class_type = '"+req.body.class_type+"' WHERE row_id="+req.body.row_id;
+	let sql = "UPDATE Lms_Class SET class_name = '"+req.body.class_name+"',course_id = '"+req.body.course_id+"',start_date = '"+req.body.start_date+"', end_date = '"+req.body.end_date+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"', class_type = '"+req.body.class_type+"', category_id = '"+req.body.cat_id+"' WHERE row_id="+req.body.row_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

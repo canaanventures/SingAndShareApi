@@ -120,6 +120,17 @@ var lmsclassstorage = multer.diskStorage({
 });
 var lmsclassupload = multer({storage: lmsclassstorage});
 
+var gallerystorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/events/gallery');
+    },
+    filename: (req, file, cb) => {
+	    photopath = '/uploads/events/gallery/event_'+req.params.class_name+'_'+req.params.cnt+path.extname(file.originalname);
+		cb(null, 'event_'+req.params.class_name+'_'+req.params.cnt+path.extname(file.originalname));
+    }
+});
+var galleryupload = multer({storage: gallerystorage});
+
 
 const db = mysql.createPool({
 	host: '65.175.118.74',
@@ -698,6 +709,14 @@ app.post('/addEventImg',upload.single('image'),function(req,res){
 	});
 })
 
+app.post('/addGalleryImg',galleryupload.array('multiple_images'),function(req,res){		
+	res.json({
+		status: 200,
+		message: "Event Banner Added successfully.",
+		filepath: photopath
+	});
+})
+
 app.post('/addEvent',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
@@ -862,6 +881,24 @@ app.get('/getRole',function(req,res){ //,authorize("customer:read")
 	});
 })
 
+app.get('/pastEvents',function(req,res){
+	let sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date < NOW()";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Event fetched successfully."
+			});						
+		}
+	});
+})
+
 app.get('/getEvents/:type', function(req,res){
 	let sql = '';
 	if(req.params.type == 'home'){
@@ -869,7 +906,7 @@ app.get('/getEvents/:type', function(req,res){
 
 		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID"
+		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()"
 	}else{
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}
@@ -1037,8 +1074,20 @@ app.get('/getUserImg/:id', function(req, res){
 });
 
 app.post('/getBlogMultiImg', function(req, res){
-	const file = req.body.image_url;
-	res.sendFile(__dirname + file);
+	let data = req.body; let imgArr = [];
+	for(var i=0;i<data.length;i++){
+		let buff = fs.readFileSync(__dirname+data[i].image_url);
+		let base64data = buff.toString('base64');
+		imgArr.push({
+			'id': data[i].blog_id,
+			'src': base64data
+		});
+	}
+	res.json({
+		status: 200,
+		data: imgArr,
+		message: "List fetched successfully."
+	});
 });
 
 app.post('/addBlog',function(req,res){
@@ -1099,12 +1148,19 @@ app.get('/getApprovedBlogs',function(req,res){
 				status: null,
 				message: err
 		   	});
-		}else{			
+		}else{
+			let imgArr = [];
+			for(var i=0;i<data.length;i++){
+				let buff = fs.readFileSync(__dirname+data[i].image_url);
+				let base64data = buff.toString('base64');				
+				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+				imgArr.push(data[i]);
+			}
 			res.json({
 				status: 200,
-				data: data,
-				message: "Blog fetched successfully."
-			});						
+				data: imgArr,
+				message: "Blog list fetched successfully."
+			});					
 		}
 	});
 })

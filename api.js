@@ -24,7 +24,7 @@ app.use(express.static('public'));
 
 //const DIR = './uploads/events';
 
-var photopath = '';
+var photopath = '', galleryphotopath=[];
 var usertableresp = '';
 
 app.use(function(req, res, next) {
@@ -35,17 +35,11 @@ app.use(function(req, res, next) {
  
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, constant.DIR);
+      cb(null, './uploads/events');
     },
     filename: (req, file, cb) => {
-	    //cb(null, file.fieldname + '-' + Date.now() + '.' + path.extname(file.originalname));	    
-	    var dte = req.body.event_start_date;	    
-		var a = dte.split('T');
-	    var b = dte.split('T')[0].split('-').join('_');		
-	    var c = dte.split('T')[1].split(':').join('_');
-	    var reqdte = b+'_'+c;
-	    photopath = '/uploads/events/event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname);
-	    cb(null, 'event_' + req.body.event_venue +'_'+ reqdte + path.extname(file.originalname));
+	    photopath = '/uploads/events/event_' + req.params.dte +'_'+ req.params.event_name + path.extname(file.originalname);
+	    cb(null, 'event_' + req.params.dte +'_'+ req.params.event_name + path.extname(file.originalname));
     }
 });
 var upload = multer({storage: storage});
@@ -125,8 +119,8 @@ var gallerystorage = multer.diskStorage({
       	cb(null, './uploads/events/gallery');
     },
     filename: (req, file, cb) => {
-	    photopath = '/uploads/events/gallery/event_'+req.params.class_name+'_'+req.params.cnt+path.extname(file.originalname);
-		cb(null, 'event_'+req.params.class_name+'_'+req.params.cnt+path.extname(file.originalname));
+	    galleryphotopath.push('/uploads/events/gallery/event_'+req.params.id+'_'+file.originalname);
+		cb(null, 'event_'+req.params.id+'_'+file.originalname);
     }
 });
 var galleryupload = multer({storage: gallerystorage});
@@ -700,8 +694,7 @@ app.post('/addUserImg/:user_id/',userupload.single('image'),function(req,res){
 	});
 })
 
-
-app.post('/addEventImg',upload.single('image'),function(req,res){		
+app.post('/addEventImg/:dte/:event_name',upload.single('image'),function(req,res){		
 	res.json({
 		status: 200,
 		message: "Event Banner Added successfully.",
@@ -709,12 +702,47 @@ app.post('/addEventImg',upload.single('image'),function(req,res){
 	});
 })
 
-app.post('/addGalleryImg',galleryupload.array('multiple_images'),function(req,res){		
-	res.json({
-		status: 200,
-		message: "Event Banner Added successfully.",
-		filepath: photopath
-	});
+app.post('/addGalleryImg/:id',galleryupload.array('image',10),function(req,res){    
+	let b=[];
+	for(var i=0;i<galleryphotopath.length;i++){
+		let newArray = [];
+		newArray.push(req.params.id);
+		newArray.push(galleryphotopath[i]);		
+		newArray.push("N");
+		b.push(newArray);
+    }
+	let sql = "INSERT INTO gallery (event_id, image_url, main_img) VALUES ?";
+	db.query(sql, [b], function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			galleryphotopath = [];
+			res.json({
+				status: 200,
+				message: "Images for this events added successfully."
+			});
+		}
+	})
+})
+
+app.post('/addGalleryMainImg/:id',galleryupload.single('image'),function(req,res){    
+	let sql = "INSERT INTO gallery (event_id, image_url, main_img) VALUES ('"+req.params.id+"','"+galleryphotopath[0]+"','Y')";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{	
+			res.json({
+				status: 200,
+				message: "Main Image for this events added successfully."
+			});
+		}
+	})
 })
 
 app.post('/addEvent',function(req,res){
@@ -793,7 +821,7 @@ app.post('/editEvent',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"' WHERE event_id="+req.body.event_id;
+	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"', poster_url = '"+req.body.imgurl+"' WHERE event_id="+req.body.event_id;
     
     //, poster_url = '"+req.body.imgurl+"' 
 
@@ -1087,6 +1115,49 @@ app.post('/getBlogMultiImg', function(req, res){
 		status: 200,
 		data: imgArr,
 		message: "List fetched successfully."
+	});
+});
+
+app.get('/getGalleryImg/:type', function(req, res){
+	let sql; 
+	if(req.params.type == 'home'){
+		sql = "SELECT gallery_id, event_id, image_url FROM gallery WHERE main_img = 'Y' LIMIT 5";
+	}else if(req.params.type == 'all'){
+		sql = "SELECT a.gallery_id, a.event_id, a.image_url, b.event_name, b.description, b.event_start_date FROM gallery a INNER JOIN events b ON a.event_id = b.event_id WHERE a.main_img = 'Y'";
+	}else{
+		sql = "SELECT * FROM gallery a INNER JOIN events b ON a.event_id = b.event_id WHERE a.event_id = " + req.params.type;
+	}
+	db.query(sql, function(err, data, fields) {
+		let imgArr = [];
+		for(var i=0;i<data.length;i++){
+			let buff = fs.readFileSync(__dirname+data[i].image_url);
+			let base64data = buff.toString('base64');				
+			data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+			imgArr.push(data[i]);
+		}
+		res.json({
+			status: 200,
+			data: imgArr,
+			message: "List fetched successfully."
+		});			
+	});
+});
+
+app.get('/getMultiEventImg', function(req, res){
+	let sql = "SELECT event_id, poster_url FROM events WHERE events.event_end_date > NOW() LIMIT 5";
+	db.query(sql, function(err, data, fields) {
+		let imgArr = [];
+		for(var i=0;i<data.length;i++){
+			let buff = fs.readFileSync(__dirname+data[i].poster_url);
+			let base64data = buff.toString('base64');				
+			data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+			imgArr.push(data[i]);
+		}
+		res.json({
+			status: 200,
+			data: imgArr,
+			message: "List fetched successfully."
+		});			
 	});
 });
 

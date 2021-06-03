@@ -454,7 +454,11 @@ app.post('/registerUserForEvent',function(req,res){
 				message: err
 		   	});
 		}else{
-			let sql = "SELECT event_name, event_start_date, venue_name FROM events";
+			res.json({
+				status: 200,
+				message: "New User registered for the event."
+			});
+			/* let sql = "SELECT event_name, event_start_date, venue_name FROM events WHERE event_id = " + req.body.event_id;
 			db.query(sql, function(err, data, fields) {
 				if(err){
 					res.json({
@@ -492,7 +496,7 @@ app.post('/registerUserForEvent',function(req,res){
 					    }
 					});
 				}
-			})		
+			}) */
 		}
 	});				
 })
@@ -570,10 +574,45 @@ app.post('/addToContactEvent',function(req,res){
 				message: err
 		   	});
 		}else{
-			res.json({
-				status: 200,
-				message: "You have successfully registered yourself for the event."
-			});
+			let sql = "SELECT event_name, event_start_date, venue_name FROM events WHERE event_id = " + req.body.event_id;
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					var dte = new Date(data[0].event_start_date);
+					var evt_date = dte.getDate()+'/'+(dte.getMonth()+1)+'/'+dte.getFullYear();
+					let evt_time = dte.getHours()+':'+dte.getMinutes();
+
+					let param = {
+						"event_name" : data[0].event_name,
+						"event_start_date" : evt_date,
+						"event_start_time": evt_time,
+						"venue_name": data[0].venue_name
+					}
+					var description = registration_email.event_register(param);
+
+				   	var mailOptions={
+				        to: req.body.contact_email_id,
+						subject: 'Webinar Registration Details',
+						html: description
+				    }
+
+				    mailerdetails.sendMail(mailOptions, function(error, response){
+					    if(error){
+					        res.end("error");
+					    }else{
+					        res.json({
+								status: 200,
+								message: "User successfully registered for the event.",
+								data: ''
+							});
+					    }
+					});
+				}
+			})
 		}
 	})
 })

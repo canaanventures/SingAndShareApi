@@ -458,45 +458,6 @@ app.post('/registerUserForEvent',function(req,res){
 				status: 200,
 				message: "New User registered for the event."
 			});
-			/* let sql = "SELECT event_name, event_start_date, venue_name FROM events WHERE event_id = " + req.body.event_id;
-			db.query(sql, function(err, data, fields) {
-				if(err){
-					res.json({
-						status: null,
-						message: err
-				   	});
-				}else{
-					var dte = new Date(data[0].event_start_date);
-					var evt_date = dte.getDate()+'/'+(dte.getMonth()+1)+'/'+dte.getFullYear();
-					let evt_time = dte.getHours()+':'+dte.getMinutes();
-
-					let param = {
-						"event_name" : data[0].event_name,
-						"event_start_date" : evt_date,
-						"event_start_time": evt_time,
-						"venue_name": data[0].venue_name
-					}
-					var description = registration_email.event_register(param);
-
-				   	var mailOptions={
-				        to: req.body.contact_email_id,
-						subject: 'Webinar Registration Details',
-						html: description
-				    }
-
-				    mailerdetails.sendMail(mailOptions, function(error, response){
-					    if(error){
-					        res.end("error");
-					    }else{
-					        res.json({
-								status: 200,
-								message: "User successfully registered for the event.",
-								data: ''
-							});
-					    }
-					});
-				}
-			}) */
 		}
 	});				
 })
@@ -606,8 +567,7 @@ app.post('/addToContactEvent',function(req,res){
 					    }else{
 					        res.json({
 								status: 200,
-								message: "User successfully registered for the event.",
-								data: ''
+								message: "User successfully registered for the event."
 							});
 					    }
 					});
@@ -766,6 +726,52 @@ app.post('/addGalleryImg/:id',galleryupload.array('image',10),function(req,res){
 	})
 })
 
+app.get('/deleteGalleryImg/:id',function(req,res){    
+	let sql = "SELECT image_url FROM gallery WHERE event_id = " + req.params.id;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			var setObj = new Set(); // create key value pair from array of array
+			var result = data.reduce((acc,item)=>{
+			  	if(!setObj.has(item.image_url)){
+				    setObj.add(item.image_url,item)
+				    acc.push(item)
+			  	}
+			  return acc;
+			},[]);
+			for(var i=0;i<result.length;i++){
+				const pathToFile = __dirname + data[i].image_url;
+				fs.unlinkSync(pathToFile);
+				/* fs.unlinkSync(pathToFile, function(err) {
+					if (err) {
+						throw err
+					} else {
+						console.log("Successfully deleted the file.")
+					}
+				}) */
+			}
+			let sql = "DELETE FROM gallery WHERE event_id = " + req.params.id;
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						message: "Gallery images deleted successfully."
+				   	});
+				}
+			})
+		}
+	})
+})
+
 app.post('/addGalleryMainImg/:id',galleryupload.single('image'),function(req,res){    
 	let sql = "INSERT INTO gallery (event_id, image_url, main_img) VALUES ('"+req.params.id+"','"+galleryphotopath[0]+"','Y')";
 	db.query(sql, function(err, data, fields) {
@@ -860,8 +866,6 @@ app.post('/editEvent',function(req,res) {
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
 	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"', poster_url = '"+req.body.imgurl+"' WHERE event_id="+req.body.event_id;
-    
-    //, poster_url = '"+req.body.imgurl+"' 
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -972,7 +976,7 @@ app.get('/getEvents/:type', function(req,res){
 
 		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()"
+		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()";
 	}else{
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}
@@ -1612,6 +1616,42 @@ app.post('/getReports',function(req,res){
 			});						
 		}
 	});
+})
+
+app.get('/getMentorReportList',function(req,res){
+	let sql = "SELECT a.user_first_name, a.user_last_name, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id WHERE a.parent_id = ''"; // , c.user_address, c.user_city, c.user_state
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getMenteeReportList',function(req,res){
+	let sql = "SELECT a.user_first_name, a.user_last_name, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name,d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.parent_id != '' AND a.parent_id != 0";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
 })
 
 /* Training Category (LMS) */

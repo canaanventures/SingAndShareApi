@@ -155,7 +155,11 @@ const mailerdetails = nodemailer.createTransport({
  	auth: {
         user: constant.info_email,
         pass: constant.info_password
-    }
+    },
+	tls: {
+	    // do not fail on invalid certs
+	    rejectUnauthorized: false
+	}
 	//tls: {
 	    //ciphers: 'SSLv3'
 	//}

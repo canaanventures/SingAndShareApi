@@ -242,7 +242,7 @@ app.post('/register',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number,status) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"','"+req.body.status+"')";
+	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number,status,parent_id) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"','"+req.body.status+"','"+req.body.parent_id+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -263,40 +263,37 @@ app.post('/register',function(req,res){
 							message: err
 					   	});
 					}else{
-						let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
-						db.query(sql, function(err, data, fields) {
-							let sql = "INSERT INTO users (parent_id) VALUES ('"+data[0].user_id+"')";
-							db.query(sql, function(err, data, fields) {
-								if(err){
-									res.json({
-										status: null,
-										message: err
-								   	});
-								}else{
-									let param ={
-										"email_id" : req.body.user_email_id,
-										"password" : req.body.user_password
-									}
-									var description = registration_email.user_register(param);
-
-								   	var mailOptions={
-								        to: req.body.user_email_id,
-										subject: 'Welcome to SingAndShare !!!',
-										html: description
-								    }
-
-								    mailerdetails.sendMail(mailOptions, function(error, response){
-									    if(error){
-									        res.end("error");
-									    }else{
-									        res.json({
-												status: 200,
-												message: "You have been successfully registered. email has been sent to your mentioned ID."
-											});
-									    }
-									});
+						let sql = "INSERT INTO usersdetails (user_address, user_pincode, user_city, user_state) VALUES ('','','','')";
+						db.query(sql, function(err, data, fields) {							
+							if(err){
+								res.json({
+									status: null,
+									message: err
+							   	});
+							}else{
+								let param ={
+									"email_id" : req.body.user_email_id,
+									"password" : req.body.user_password
 								}
-							})
+								var description = registration_email.user_register(param);
+
+							   	var mailOptions={
+							        to: req.body.user_email_id,
+									subject: 'Welcome to SingAndShare !!!',
+									html: description
+							    }
+
+							    mailerdetails.sendMail(mailOptions, function(error, response){
+								    if(error){
+								        res.end("error");
+								    }else{
+								        res.json({
+											status: 200,
+											message: "You have been successfully registered. email has been sent to your mentioned ID."
+										});
+								    }
+								});
+							}
 						})
 					}
 				});
@@ -1619,7 +1616,7 @@ app.post('/getReports',function(req,res){
 })
 
 app.get('/getMentorReportList',function(req,res){
-	let sql = "SELECT a.user_first_name, a.user_last_name, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id WHERE a.parent_id = ''"; // , c.user_address, c.user_city, c.user_state
+	let sql = "SELECT CONCAT(a.user_first_name, a.user_last_name) as mentor_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id WHERE a.parent_id = ''"; // , c.user_address, c.user_city, c.user_state
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

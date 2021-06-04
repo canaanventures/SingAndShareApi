@@ -619,8 +619,8 @@ app.post('/addAttendees',function(req,res){
 
 app.post('/sendUserLink',function(req,res){
 	let param = {
-		"redirectlink" : constant.redirectlink,
-		"url" : req.body.url
+		redirectlink : constant.redirectlink,
+		url : req.body.url
 	}
 	var description = registration_email.mentee_register(param);
 
@@ -632,7 +632,11 @@ app.post('/sendUserLink',function(req,res){
 
     mailerdetails.sendMail(mailOptions, function(error, response){
 	    if(error){
-	        res.end("error");
+	        res.json({
+	        	status:201,
+	        	message:error,
+	        	data:response
+	        });
 	    }else{
 	        res.json({
 				status: 200,

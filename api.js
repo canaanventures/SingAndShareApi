@@ -634,7 +634,10 @@ app.post('/sendUserLink',function(req,res){
 	    if(error){
 	        res.end("error");
 	    }else{
-	        res.end("Email Sent");
+	        res.json({
+				status: 200,
+				message: "Email is sent to the mentioned Email Address."
+		   	});
 	    }
 	});
 })

@@ -1645,7 +1645,7 @@ app.get('/getMentorReportList',function(req,res){
 })
 
 app.get('/getMenteeReportList',function(req,res){
-	let sql = "SELECT CONCAT(a.user_first_name, a.user_last_name) as mentee_name, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name, d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.parent_id != '' AND a.parent_id != 0";
+	let sql = "SELECT CONCAT(a.user_first_name, a.user_last_name) as mentee_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name, d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.parent_id != '' AND a.parent_id != 0";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

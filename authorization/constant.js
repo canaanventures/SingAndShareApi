@@ -5,5 +5,5 @@ module.exports = {
 	eventsDir: 'http://singandshare.vecan.co/uploads/events',
 	redirectlink: 'http://singandshare.vecan.co/register/',
 	info_email: 'reubenjathanna1991@gmail.com',
-	info_password: 'reuben@951991'
+	info_password: 'qrxvgfkklubriaow'//'reuben@951991'
 }

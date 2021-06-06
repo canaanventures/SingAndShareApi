@@ -1662,6 +1662,24 @@ app.get('/getMenteeReportList',function(req,res){
 	})
 })
 
+app.get('/getPCSReportList',function(req,res){
+	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
 /* Training Category (LMS) */
 app.post('/addLMSCategory',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';

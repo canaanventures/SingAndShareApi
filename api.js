@@ -584,7 +584,7 @@ app.post('/addAttendance',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO meetingattendance (srs_id, meeting_date, attendees, new_attendees, created_by, created_on) VALUES ('"+req.body.srs_id+"','"+req.body.meeting_date+"','"+req.body.attendees+"','"+req.body.new_attendees+"','"+req.body.created_by+"','"+reqdte+"')";
+	let sql = "INSERT INTO meetingattendance (srs_id, meeting_date, total_members, new_attendees, presentees, absentees, created_by, created_on) VALUES ('"+req.body.srs_id+"','"+req.body.meeting_date+"','"+req.body.total_members+"','"+req.body.new_attendees+"','"+req.body.presentees+"','"+req.body.absentees+"','"+req.body.created_by+"','"+reqdte+"')";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -603,7 +603,7 @@ app.post('/addAttendance',function(req,res){
 })
 
 app.post('/addAttendees',function(req,res){
-	let sql = "INSERT INTO attendees (user_id,user_first_name,user_last_name,meeting_id) VALUES?";
+	let sql = "INSERT INTO attendees (user_id, user_first_name, user_last_name, attendance_status, meeting_id) VALUES?";
 
 	db.query(sql, [req.body.vals], function(err, data, fields) {
 		if(err){
@@ -1664,6 +1664,80 @@ app.get('/getMenteeReportList',function(req,res){
 
 app.get('/getPCSReportList',function(req,res){
 	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getSNSList',function(req,res){
+	let sql = "SELECT srs_id, srs_name from srs_branch";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getAttendanceReportList',function(req,res){
+	let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status ORDER BY users_name";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getNewlyAddedList',function(req,res){
+	let sql = "SELECT a.user_id, CONCAT(a.user_first_name,' ',a.user_first_name) AS user_name, a.user_created_date, a.user_email_id, a.user_contact_number, a.status, b.role_name, CONCAT(c.user_first_name,' ',c.user_last_name) AS mentor_name, d.srs_name FROM users a LEFT JOIN roles b ON a.role_id = b.role_id LEFT JOIN users c ON a.parent_id = c.user_id LEFT JOIN srs_branch d ON a.srs_id = d.srs_id ORDER BY a.user_created_date DESC";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.post('/getAttendanceReportListByDate',function(req,res){
+	let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id WHERE a.meeting_date >='"+req.body.from_date+"' AND a.meeting_date <= '"+req.body.to_date+"' GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status ORDER BY users_name";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

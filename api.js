@@ -256,7 +256,7 @@ app.post('/register',function(req,res){
 		   	});
 		}else{
 			let user_id = data.insertId;
-			let sql = "INSERT INTO user_access (sns_access, user_access, event_access, attendance_access, calendar_add_access, calendar_access, blog_access, blog_approve_access, blog_change_status_access) VALUES ('0','0','0','0','0','0','0','0','0')";
+			let sql = "INSERT INTO user_access (user_id, sns_access, user_access, event_access, attendance_access, calendar_add_access, calendar_access, blog_access, blog_approve_access, blog_change_status_access) VALUES ('"+user_id+"','0','0','0','0','0','0','0','0','0')";
 			db.query(sql, function(err, data, fields) {
 
 				let sql = "INSERT INTO users_password (user_password,user_email_id,user_id) VALUES ('"+req.body.user_password+"','"+req.body.user_email_id+"','"+user_id+"')";
@@ -268,7 +268,7 @@ app.post('/register',function(req,res){
 							message: err
 					   	});
 					}else{
-						let sql = "INSERT INTO usersdetails (user_address, user_pincode, user_city, user_state) VALUES ('',0,'','')";
+						let sql = "INSERT INTO usersdetails (user_id, user_address, user_pincode, user_city, user_state) VALUES ('"+user_id+"','',0,'','')";
 						db.query(sql, function(err, data, fields) {							
 							if(err){
 								res.json({

@@ -267,7 +267,7 @@ app.post('/register',function(req,res){
 							message: err
 					   	});
 					}else{
-						let sql = "INSERT INTO usersdetails (user_address, user_pincode, user_city, user_state) VALUES ('','','','')";
+						let sql = "INSERT INTO usersdetails (user_address, user_pincode, user_city, user_state) VALUES ('',0,'','')";
 						db.query(sql, function(err, data, fields) {							
 							if(err){
 								res.json({

@@ -1458,6 +1458,8 @@ app.get('/getBranches/:type',function(req,res){
 	let sql = '';
 	if(req.params.type == 'all'){
 		sql = "SELECT srs_branch.srs_id, srs_branch.srs_name, srs_branch.created_on,srs_branch.status , users.user_first_name, users.user_last_name FROM srs_branch INNER JOIN users ON users.user_id = srs_branch.user_id";
+	}else if(req.params.type == 'adduser'){
+		sql = "SELECT srs_id, srs_name FROM srs_branch  WHERE status = 'Enable'";
 	}else{
 		sql = "SELECT srs_id, srs_name, user_id from srs_branch WHERE srs_id="+req.params.type;
 	}

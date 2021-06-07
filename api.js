@@ -1627,7 +1627,27 @@ app.post('/getReports',function(req,res){
 })
 
 app.get('/getMentorReportList',function(req,res){
-	let sql = "SELECT CONCAT(a.user_first_name, a.user_last_name) as mentor_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id WHERE a.parent_id = ''"; // , c.user_address, c.user_city, c.user_state
+	let sql = "SELECT CONCAT( a.user_first_name,' ', a.user_last_name ) AS mentor_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, d.role_name FROM users a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN roles d ON a.role_id = d.role_id WHERE a.role_id in (8,9,11)";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getNewMentorReportList',function(req,res){
+	let sql = "SELECT CONCAT( a.user_first_name,' ', a.user_last_name ) AS mentor_name, a.user_created_date, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, d.role_name FROM users a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN roles d ON a.role_id = d.role_id WHERE a.role_id in (8,9,11)";
+	
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -1645,7 +1665,25 @@ app.get('/getMentorReportList',function(req,res){
 })
 
 app.get('/getMenteeReportList',function(req,res){
-	let sql = "SELECT CONCAT(a.user_first_name, a.user_last_name) as mentee_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name, d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.parent_id != '' AND a.parent_id != 0";
+	let sql = "SELECT CONCAT(a.user_first_name,' ', a.user_last_name) as mentee_name, a.modified_on, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name, d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.role_id = 10";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getNewMenteeReportList',function(req,res){
+	let sql = "SELECT CONCAT(a.user_first_name,' ', a.user_last_name) as mentee_name, a.user_created_date, a.user_email_id, a.user_contact_number, b.srs_name, a.status, c.user_address, c.user_pincode, c.user_city, c.user_state, CONCAT(d.user_first_name, d.user_last_name) as mentor_name FROM users a RIGHT JOIN srs_branch b ON a.srs_id = b.srs_id RIGHT JOIN usersdetails c ON a.user_id = c.user_id LEFT JOIN users d ON a.parent_id = d.user_id WHERE a.role_id = 10";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -1718,7 +1756,26 @@ app.get('/getAttendanceReportList',function(req,res){
 })
 
 app.get('/getNewlyAddedList',function(req,res){
-	let sql = "SELECT a.user_id, CONCAT(a.user_first_name,' ',a.user_first_name) AS user_name, a.user_created_date, a.user_email_id, a.user_contact_number, a.status, b.role_name, CONCAT(c.user_first_name,' ',c.user_last_name) AS mentor_name, d.srs_name FROM users a LEFT JOIN roles b ON a.role_id = b.role_id LEFT JOIN users c ON a.parent_id = c.user_id LEFT JOIN srs_branch d ON a.srs_id = d.srs_id ORDER BY a.user_created_date DESC";
+	let sql = "SELECT a.user_id, CONCAT(a.user_first_name,' ',a.user_last_name) AS user_name, a.user_created_date, a.user_email_id, a.user_contact_number, a.status, b.role_name, CONCAT(c.user_first_name,' ',c.user_last_name) AS mentor_name, d.srs_name FROM users a LEFT JOIN roles b ON a.role_id = b.role_id LEFT JOIN users c ON a.parent_id = c.user_id LEFT JOIN srs_branch d ON a.srs_id = d.srs_id ORDER BY a.user_created_date DESC";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/monthlyAttendance',function(req,res){
+	let sql = "SELECT b.srs_name, CONCAT(MONTHNAME(a.meeting_date),', ',YEAR(a.meeting_date)) AS month, COUNT(*) AS count FROM meetingattendance a INNER JOIN srs_branch b ON a.srs_id = b.srs_id GROUP BY b.srs_name, month";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){

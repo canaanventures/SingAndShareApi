@@ -1721,6 +1721,7 @@ app.get('/getPCSReportList',function(req,res){
 	})
 })
 
+
 app.get('/getLMSReportList',function(req,res){
 	let sql = "SELECT a.class_name, a.start_date, a.end_date, c.category_name, d.course_name, CONCAT( b.user_first_name, ' ', b.user_last_name ) AS instructor_name FROM Lms_Class a LEFT JOIN users b ON a.instructor_id = b.user_id LEFT JOIN Lms_Category c ON a.category_id = c.row_id LEFT JOIN Lms_Course d ON a.course_id = d.row_id";
 	db.query(sql, function(err, data, fields) {

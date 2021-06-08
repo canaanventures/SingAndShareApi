@@ -1721,6 +1721,24 @@ app.get('/getPCSReportList',function(req,res){
 	})
 })
 
+app.get('/getLMSReportList',function(req,res){
+	let sql = "SELECT a.class_name, a.start_date, a.end_date, c.category_name, CONCAT(b.user_first_name,' ',b.user_last_name) AS instructor_name FROM Lms_Class a LEFT JOIN users b ON a.instructor_id = b.user_id LEFT JOIN Lms_Category c ON a.category_id = c.row_id";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
 app.get('/getSNSList',function(req,res){
 	let sql = "SELECT srs_id, srs_name from srs_branch";
 	
@@ -2057,7 +2075,7 @@ app.post('/addLMSLesson',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, 	, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

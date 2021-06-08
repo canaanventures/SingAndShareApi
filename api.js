@@ -2185,25 +2185,6 @@ app.post('/updateLMSLesson',function(req,res){
 	});
 });
 
-/* Training Class (LMS) */
-/*app.get('/getInstructors',function(req,res){
-	let sql = "SELECT user_id, user_first_name, user_last_name FROM users WHERE role_id = 9 AND status='Enable'";
-	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
-			res.json({
-				status: 200,
-				data: data,
-				message: "List fetched successfully."
-			});						
-		}
-	});
-}); */
-
 app.post('/addLMSClass',function(req,res){
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;

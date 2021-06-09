@@ -1246,7 +1246,7 @@ app.post('/addBlog',function(req,res){
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	let sql = '';
 	if(req.params.listtype == 'multiple'){
-		(req.params.cnt == 'all') ? sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id" : sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 1";
+		(req.params.cnt == 'all') ? sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id" : sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 1";
 	}else{
 		sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id LEFT JOIN users u ON b.created_by_user_id = u.user_id WHERE blog_id = "+req.params.cnt;
 	}

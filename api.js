@@ -1140,7 +1140,11 @@ app.get('/getBlogImg/:id', function(req, res){
 	let sql = "SELECT image_url from blogs WHERE blog_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
 		const file = data[0].image_url;
-  		res.sendFile(__dirname + file);
+		if(file){
+			res.sendFile(__dirname + file);
+		}else{
+			res.sendFile(__dirname + '/uploads/not-found/no-img-found-medium.png');
+		}
 	});
 });
 
@@ -1148,7 +1152,11 @@ app.get('/getUserImg/:id', function(req, res){
 	let sql = "SELECT image_url from users WHERE user_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
 		const file = data[0].image_url;
-  		res.sendFile(__dirname + file);
+		if(file){
+			res.sendFile(__dirname + file);
+		}else{
+			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+		}
 	});
 });
 
@@ -1925,7 +1933,11 @@ app.get('/getLMSCategoryImg/:id', function(req, res){
 	let sql = "SELECT category_image_url from Lms_Category WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
 		const file = data[0].category_image_url;
-  		res.sendFile(__dirname + file);
+		if(file){
+			res.sendFile(__dirname + file);
+		}else{
+			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+		}  		
 	});
 });
 
@@ -1994,7 +2006,11 @@ app.get('/getLMSCourseImg/:id', function(req, res){
 	let sql = "SELECT course_image_url from Lms_Course WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
 		const file = data[0].course_image_url;
-  		res.sendFile(__dirname + file);
+  		if(file){
+			res.sendFile(__dirname + file);
+		}else{
+			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+		}
 	});
 });
 
@@ -2112,7 +2128,11 @@ app.get('/getLMSLessonImg/:id', function(req, res){
 	let sql = "SELECT lesson_image_url from Lms_Lesson WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
 		const file = data[0].lesson_image_url;
-  		res.sendFile(__dirname + file);
+  		if(file){
+			res.sendFile(__dirname + file);
+		}else{
+			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+		}
 	});
 });
 

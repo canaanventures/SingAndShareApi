@@ -804,7 +804,7 @@ app.post('/addEvent',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.event_description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
+	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1155,12 +1155,14 @@ app.get('/getUserImg/:id', function(req, res){
 app.post('/getBlogMultiImg', function(req, res){
 	let data = req.body; let imgArr = [];
 	for(var i=0;i<data.length;i++){
-		let buff = fs.readFileSync(__dirname+data[i].image_url);
-		let base64data = buff.toString('base64');
-		imgArr.push({
-			'id': data[i].blog_id,
-			'src': base64data
-		});
+		if(data[i].image_url){
+			let buff = fs.readFileSync(__dirname+data[i].image_url);
+			let base64data = buff.toString('base64');
+			imgArr.push({
+				'id': data[i].blog_id,
+				'src': base64data
+			});
+		}
 	}
 	res.json({
 		status: 200,
@@ -1181,10 +1183,12 @@ app.get('/getGalleryImg/:type', function(req, res){
 	db.query(sql, function(err, data, fields) {
 		let imgArr = [];
 		for(var i=0;i<data.length;i++){
-			let buff = fs.readFileSync(__dirname+data[i].image_url);
-			let base64data = buff.toString('base64');				
-			data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-			imgArr.push(data[i]);
+			if(data[i].image_url){
+				let buff = fs.readFileSync(__dirname+data[i].image_url);
+				let base64data = buff.toString('base64');				
+				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+				imgArr.push(data[i]);
+			}
 		}
 		res.json({
 			status: 200,
@@ -1199,10 +1203,12 @@ app.get('/getMultiEventImg', function(req, res){
 	db.query(sql, function(err, data, fields) {
 		let imgArr = [];
 		for(var i=0;i<data.length;i++){
-			let buff = fs.readFileSync(__dirname+data[i].poster_url);
-			let base64data = buff.toString('base64');				
-			data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-			imgArr.push(data[i]);
+			if(data[i].poster_url){
+				let buff = fs.readFileSync(__dirname+data[i].poster_url);
+				let base64data = buff.toString('base64');				
+				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+				imgArr.push(data[i]);
+			}
 		}
 		res.json({
 			status: 200,
@@ -1273,10 +1279,12 @@ app.get('/getApprovedBlogs',function(req,res){
 		}else{
 			let imgArr = [];
 			for(var i=0;i<data.length;i++){
-				let buff = fs.readFileSync(__dirname+data[i].image_url);
-				let base64data = buff.toString('base64');				
-				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-				imgArr.push(data[i]);
+				if(data[i].image_url){
+					let buff = fs.readFileSync(__dirname+data[i].image_url);
+					let base64data = buff.toString('base64');				
+					data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+					imgArr.push(data[i]);
+				}
 			}
 			res.json({
 				status: 200,

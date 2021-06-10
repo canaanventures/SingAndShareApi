@@ -1276,7 +1276,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 })
 
 app.get('/getApprovedBlogs',function(req,res){
-	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id AND approval_status = 'Y' AND status = 'Enable'";
+	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id WHERE approval_status = 'Y' AND b.status = 'Enable'";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){

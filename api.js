@@ -2185,7 +2185,6 @@ app.get('/getLMSLesson/:cnt',function(req,res){
 				data: data,
 				message: "List fetched successfully."
 			});
-			connection.end();
 		}
 	});
 })

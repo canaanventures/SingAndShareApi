@@ -125,6 +125,16 @@ var gallerystorage = multer.diskStorage({
 });
 var galleryupload = multer({storage: gallerystorage});
 
+var lessonstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      	cb(null, './uploads/lesson');
+    },
+    filename: (req, file, cb) => {
+	    lessondocpath.push('/uploads/lesson/lesson_'+req.params.id+'_'+file.originalname);
+		cb(null, 'lesson_'+req.params.id+'_'+file.originalname);
+    }
+});
+var lessonupload = multer({storage: lessonstorage});
 
 const db = mysql.createPool({
 	host: '65.175.118.74',
@@ -2102,17 +2112,34 @@ app.post('/addLMSLesson',function(req,res){
 	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
 
 	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
-			res.json({
-				status: 200,
-				message: "Lesson Added successfully."
-			});						
+		var b =[], id = data.insertId;
+		for(var i=0;i<req.body.docdata.length;i++){
+			b.push(id);
+			b.push('/uploads/lesson/lesson_'+id+'_'+req.body.docdata[i].name);
+			b.push(req.body.docdata[i].url);
 		}
+		let sql = "INSERT INTO Lms_Lesson_Doc (lesson_id, pdf_path, meeting_url) VALUES ?";
+		db.query(sql, [b], function(err, data, fields) {
+			if(err){
+				res.json({
+					status: null,
+					message: err
+			   	});
+			}else{			
+				res.json({
+					status: 200,
+					message: "Lesson Added successfully.",
+					data: id
+				});						
+			}
+		})
+	});
+})
+
+app.post('/addLessonDoc/:id',lessonupload.array('image',10),function(req,res){    
+	res.json({
+		status: 200,
+		message: "Lesson Image Added successfully."
 	});
 })
 
@@ -2157,7 +2184,8 @@ app.get('/getLMSLesson/:cnt',function(req,res){
 				status: 200,
 				data: data,
 				message: "List fetched successfully."
-			});						
+			});
+			connection.end();
 		}
 	});
 })

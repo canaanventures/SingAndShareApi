@@ -127,10 +127,10 @@ var galleryupload = multer({storage: gallerystorage});
 
 var lessonstorage = multer.diskStorage({
     destination: (req, file, cb) => {
-      	cb(null, './uploads/lesson');
+      	cb(null, './uploads/lms/lesson');
     },
     filename: (req, file, cb) => {
-	    lessondocpath.push('/uploads/lesson/lesson_'+req.params.id+'_'+file.originalname);
+	    lessondocpath.push('/uploads/lms/lesson/lesson_'+req.params.id+'_'+file.originalname);
 		cb(null, 'lesson_'+req.params.id+'_'+file.originalname);
     }
 });
@@ -2112,14 +2112,16 @@ app.post('/addLMSLesson',function(req,res){
 	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
 
 	db.query(sql, function(err, data, fields) {
-		var b =[], id = data.insertId;
+		var b =[], id = data.insertId, newArr=[];
 		for(var i=0;i<req.body.docdata.length;i++){
 			b.push(id);
-			b.push('/uploads/lesson/lesson_'+id+'_'+req.body.docdata[i].name);
+			b.push('/uploads/lms/lesson/lesson_'+id+'_'+req.body.docdata[i].name);
 			b.push(req.body.docdata[i].url);
+			newArr.push(b);
+			b=[];
 		}
 		let sql = "INSERT INTO Lms_Lesson_Doc (lesson_id, pdf_path, meeting_url) VALUES ?";
-		db.query(sql, [b], function(err, data, fields) {
+		db.query(sql, [newArr], function(err, data, fields) {
 			if(err){
 				res.json({
 					status: null,

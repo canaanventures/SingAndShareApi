@@ -14,6 +14,7 @@ const config = require('./authorization/config');
 const constant = require('./authorization/constant');
 const registration_email = require('./email_templates/registration');
 const contact_email = require('./email_templates/contact');
+const get_password = require('./email_templates/password');
 
 //app.set("views",path.join(__dirname,"views"));
 //app.use(bodyParser.urlencoded({extended:true}));
@@ -2833,5 +2834,104 @@ app.post('/upDatePCS',function(req,res){
 		}
 	});
 });
+
+app.post('/visitors',function(req,res){
+	let sql = "INSERT INTO visitors_contact (visitor_name, visitor_email_id, visitor_subject, visitor_contact_number, message, created_date) VALUES ('"+req.body.visitor_name+"','"+req.body.visitor_email_id+"','"+req.body.visitor_subject+"','"+req.body.visitor_contact_number+"','"+req.body.message+"', NOW())";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let param ={
+				"visitor_name" : req.body.visitor_name,
+				"visitor_email_id" : req.body.visitor_email_id,
+				"visitor_contact_number" : req.body.visitor_contact_number,
+				"message" : req.body.message
+			}
+			var description = contact_email.contact(param);
+
+		   	var mailOptions={
+		        to : 'abraham@vecan.co',
+		        cc : 'reuben@vecan.co',
+				subject : req.body.visitor_subject,
+				html : description
+		    }
+
+		    mailerdetails.sendMail(mailOptions, function(error, response){
+			    if(error){
+			        res.json({
+						status: 200,
+						message: error
+					});
+			    }else{
+			        res.json({
+						status: 200,
+						message: "Message has been sent successfully."
+					});
+			    }
+			});
+		}
+	});
+});
+
+app.post('/forgotpassword',function(req,res){
+	let sql = "SELECT * FROM users WHERE user_email_id = '"+req.body.email_id+"'";
+	db.query(sql, function(err, data, fields) {
+		if(data.length > 0){
+			let param = {
+				redirectlink : constant.forgotredirectlink,
+				url : req.body.url
+			}
+			var description = get_password.forgot_password(param);
+
+		   	var mailOptions={
+		        to: req.body.email_id,
+		        cc: 'abraham@vecan.co',
+				subject: 'Sing And Share - Forgot your Password',
+				html: description
+		    }
+
+		    mailerdetails.sendMail(mailOptions, function(error, response){
+			    if(error){
+			        res.json({
+			        	status:201,
+			        	message:response,
+			        	data:error
+			        });
+			    }else{
+			        res.json({
+						status: 200,
+						message: "Email is sent successfully. Kindly check your Spam or Inbox for the same."
+				   	});
+			    }
+			});
+		}else{
+			res.json({
+	        	status:201,
+	        	message: "No User with such Email Id exists"
+	        });
+		}		
+	})
+});
+
+app.post('/resetpassword',function(req,res){
+	let sql = "UPDATE users_password SET user_password = '"+req.body.password+"' WHERE user_email_id='"+req.body.email_id+"'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				message: "Your password has been resetted successfully."
+		   	});
+		}
+	})
+})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

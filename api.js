@@ -24,7 +24,7 @@ app.use(express.static('public'));
 
 //const DIR = './uploads/events';
 
-var photopath = '', galleryphotopath=[];
+var photopath = '', galleryphotopath=[], lessondocpath=[];
 var usertableresp = '';
 
 app.use(function(req, res, next) {
@@ -2109,32 +2109,40 @@ app.post('/addLMSLesson',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, lesson_image_url, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.lesson_image_url+"','"+req.body.created_by+"','"+reqdte+"','Y')";
+	let sql = "INSERT INTO Lms_Lesson (lesson_name, course_id, category_id, lesson_description, created_by, created_on, lesson_status) VALUES ('"+req.body.lesson_name+"','"+req.body.course_id+"','"+req.body.category_id+"','"+req.body.lesson_description+"','"+req.body.created_by+"','"+reqdte+"','Y')";
 
 	db.query(sql, function(err, data, fields) {
-		var b =[], id = data.insertId, newArr=[];
-		for(var i=0;i<req.body.docdata.length;i++){
-			b.push(id);
-			b.push('/uploads/lms/lesson/lesson_'+id+'_'+req.body.docdata[i].name);
-			b.push(req.body.docdata[i].url);
-			newArr.push(b);
-			b=[];
-		}
-		let sql = "INSERT INTO Lms_Lesson_Doc (lesson_id, pdf_path, meeting_url) VALUES ?";
-		db.query(sql, [newArr], function(err, data, fields) {
-			if(err){
-				res.json({
-					status: null,
-					message: err
-			   	});
-			}else{			
-				res.json({
-					status: 200,
-					message: "Lesson Added successfully.",
-					data: id
-				});						
+		if(req.body.docdata.length > 0){
+			var b =[], id = data.insertId, newArr=[];
+			for(var i=0;i<req.body.docdata.length;i++){
+				b.push(id);
+				b.push('/uploads/lms/lesson/lesson_'+id+'_'+req.body.docdata[i].pdf_path);
+				b.push(req.body.docdata[i].meeting_url);
+				newArr.push(b);
+				b=[];
 			}
-		})
+			let sql = "INSERT INTO Lms_Lesson_Doc (lesson_id, pdf_path, meeting_url) VALUES ?";
+			db.query(sql, [newArr], function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{			
+					res.json({
+						status: 200,
+						message: "Lesson Added successfully.",
+						data: id
+					});						
+				}
+			})
+		}else{
+			res.json({
+				status: 200,
+				message: "Lesson Added successfully.",
+				data: id
+			});	
+		}
 	});
 })
 
@@ -2166,13 +2174,14 @@ app.get('/getLMSLessonImg/:id', function(req, res){
 });
 
 app.get('/getLMSLesson/:cnt',function(req,res){
-	let sql;
+	let sql, type;
 	if(req.params.cnt == 'all'){
 		sql = "SELECT *, CONCAT(a.row_id) AS lesson_id from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id";
 	}else if(req.params.cnt == 'Y'){
 		sql = "SELECT * from Lms_Lesson WHERE lesson_status = '"+req.params.cnt+"'";
 	}else{
 		sql = "SELECT * from Lms_Lesson WHERE row_id = "+req.params.cnt;
+		type = 'editlesson';
 	}
 
 	db.query(sql, function(err, data, fields) {
@@ -2181,14 +2190,65 @@ app.get('/getLMSLesson/:cnt',function(req,res){
 				status: null,
 				message: err
 		   	});
-		}else{			
-			res.json({
-				status: 200,
-				data: data,
-				message: "List fetched successfully."
-			});
+		}else{
+			if(type){
+				let resp1 = data;
+				sql = "SELECT * from Lms_Lesson_Doc WHERE lesson_id = "+req.params.cnt;
+				db.query(sql, function(err, data, fields) {
+					if(err){
+						res.json({
+							status: null,
+							message: err
+					   	});
+					}else{
+						let resp = {};
+						resp.list = data;
+						resp.data = resp1;
+						res.json({
+							status: 200,
+							data: resp,
+							message: "List fetched successfully."
+						});
+					}
+				})
+			}else{
+				res.json({
+					status: 200,
+					data: data,
+					message: "List fetched successfully."
+				});
+			}			
 		}
 	});
+})
+
+app.get('/removeDoc/:rowid/:lessonid',function(req,res){    
+	let sql = "SELECT pdf_path FROM Lms_Lesson_Doc WHERE row_id = " + req.params.rowid;
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			const pathToFile = __dirname + data[0].pdf_path;
+			fs.unlinkSync(pathToFile);
+			let sql = "DELETE FROM Lms_Lesson_Doc WHERE row_id = " + req.params.rowid;
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						message: "Lessons deleted successfully."
+				   	});
+				}
+			})
+		}
+	})
 })
 
 app.post('/changeLMSLessonStatus',function(req,res) {
@@ -2219,26 +2279,41 @@ app.post('/updateLMSLesson',function(req,res){
 	month < 10 ? mon = "0"+month : mon = month;
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
-
-	let sql;
-	if(req.body.lesson_image_url == ''){
-		sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
-	}else{
-		sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', lesson_image_url = '"+req.body.lesson_image_url+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;
-	}
-
+	sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;	
 	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{			
+		var b =[], id = data.insertId, newArr=[], cnt=0;
+		for(var i=0;i<req.body.docdata.length;i++){
+			if(typeof req.body.docdata[i].row_id != 'number'){
+				b.push(id);
+				b.push('/uploads/lms/lesson/lesson_'+id+'_'+req.body.docdata[i].pdf_path);
+				b.push(req.body.docdata[i].meeting_url);
+				newArr.push(b);
+				b=[];
+				cnt++;
+			}
+		}
+		if(cnt > 0){
+			let sql = "INSERT INTO Lms_Lesson_Doc (lesson_id, pdf_path, meeting_url) VALUES ?";
+			db.query(sql, [newArr], function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{			
+					res.json({
+						status: 200,
+						message: "Lesson Updated successfully.",
+						data: id
+					});						
+				}
+			})
+		}else{
 			res.json({
 				status: 200,
 				message: "Lesson Updated successfully."
-			});						
-		}
+			});	
+		}		
 	});
 });
 

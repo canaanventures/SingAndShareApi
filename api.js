@@ -596,7 +596,7 @@ app.post('/addAttendance',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO meetingattendance (srs_id, meeting_date, total_members, new_attendees, presentees, absentees, created_by, created_on) VALUES ('"+req.body.srs_id+"','"+req.body.meeting_date+"','"+req.body.total_members+"','"+req.body.new_attendees+"','"+req.body.presentees+"','"+req.body.absentees+"','"+req.body.created_by+"','"+reqdte+"')";
+	let sql = "INSERT INTO meetingattendance (srs_id, meeting_date, total_members, new_attendees, presentees, absentees, created_by, created_on, topic_name, speaker_name) VALUES ('"+req.body.srs_id+"','"+req.body.meeting_date+"','"+req.body.total_members+"','"+req.body.new_attendees+"','"+req.body.presentees+"','"+req.body.absentees+"','"+req.body.created_by+"','"+reqdte+"','"+req.body.topic_name+"','"+req.body.speaker_name+"')";
 	
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -642,6 +642,7 @@ app.post('/sendUserLink',function(req,res){
 
    	var mailOptions={
         to: req.body.email,
+        cc: 'abraham@vecan.co, rbnjathanna@gmail.com',
 		subject: 'Register Yourself as a Mentee at SingAndShare',
 		html: description
     }
@@ -1786,7 +1787,8 @@ app.get('/getSNSList',function(req,res){
 })
 
 app.get('/getAttendanceReportList',function(req,res){
-	let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status ORDER BY users_name";
+	// let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status ORDER BY users_name";
+	let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, a.speaker_name, a.topic_name, e.user_contact_number, e.user_email_id, CONCAT( f.user_first_name, ' ', f.user_last_name ) AS mentor_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id LEFT JOIN users e ON c.user_id = e.user_id LEFT JOIN users f ON e.parent_id = f.user_id GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status, a.speaker_name, a.topic_name, e.user_contact_number, e.user_email_id, mentor_name ORDER BY users_name";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -2034,6 +2036,44 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 	}else{
 		sql = "SELECT * from Lms_Course WHERE row_id = "+req.params.cnt;
 	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getMentors/:id',function(req,res){
+	let sql = "SELECT user_id, user_email_id FROM users WHERE role_id = 9 AND srs_id = "+req.params.id;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getLMSCourseOnCat/:id',function(req,res){
+	let sql = "SELECT * from Lms_Course WHERE category_id = "+req.params.id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

@@ -2054,7 +2054,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 })
 
 app.get('/getMentors/:id',function(req,res){
-	let sql = "SELECT user_id, user_email_id FROM users WHERE role_id = 9 AND srs_id = "+req.params.id;
+	let sql = "SELECT user_id, user_email_id FROM users WHERE role_id IN (9,11) AND srs_id = "+req.params.id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

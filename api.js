@@ -2322,7 +2322,7 @@ app.post('/updateLMSLesson',function(req,res){
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 	sql = "UPDATE Lms_Lesson SET lesson_name = '"+req.body.lesson_name+"',course_id = '"+req.body.course_id+"',category_id = '"+req.body.category_id+"', lesson_description = '"+req.body.lesson_description+"', modified_by = '"+req.body.modified_by+"', modified_on = '"+reqdte+"' WHERE row_id="+req.body.row_id;	
 	db.query(sql, function(err, data, fields) {
-		var b =[], id = data.insertId, newArr=[], cnt=0;
+		var b =[], id = req.body.row_id, newArr=[], cnt=0;
 		for(var i=0;i<req.body.docdata.length;i++){
 			if(typeof req.body.docdata[i].row_id != 'number'){
 				b.push(id);

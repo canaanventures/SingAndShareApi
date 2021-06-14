@@ -160,7 +160,6 @@ const db = mysql.createPool({
 
 const mailerdetails = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    // host: "smtp.office365.com",
     port: 465,
     secure: true, // true for 465, false for other ports
  	auth: {
@@ -168,12 +167,8 @@ const mailerdetails = nodemailer.createTransport({
         pass: constant.info_password
     },
 	tls: {
-	    // do not fail on invalid certs
 	    rejectUnauthorized: false
 	}
-	//tls: {
-	    //ciphers: 'SSLv3'
-	//}
 });
 
 app.post('/login',function(req,res){

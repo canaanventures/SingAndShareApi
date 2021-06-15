@@ -478,9 +478,9 @@ app.post('/updateProfile',function(req,res){
 	let sql;
 
 	if(req.body.image_url == ''){
-		sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"' WHERE user_id="+req.body.user_id;
+		sql = "UPDATE users SET user_first_name = '"+req.body.user_first_name+"', user_last_name = '"+req.body.user_last_name+"', user_email_id = '"+req.body.user_email_id+"', user_contact_number = '"+req.body.user_contact_number+"' WHERE user_id="+req.body.user_id;
 	}else{
-		sql = "UPDATE users SET user_first_name = '"+req.body.profile_first_name+"', user_last_name = '"+req.body.profile_last_name+"', user_email_id = '"+req.body.profile_email_id+"', user_contact_number = '"+req.body.profile_contact_number+"', image_url = '"+req.body.image_url+"' WHERE user_id="+req.body.user_id;
+		sql = "UPDATE users SET user_first_name = '"+req.body.user_first_name+"', user_last_name = '"+req.body.user_last_name+"', user_email_id = '"+req.body.user_email_id+"', user_contact_number = '"+req.body.user_contact_number+"', image_url = '"+req.body.image_url+"' WHERE user_id="+req.body.user_id;
 	}
 	
 	db.query(sql, function(err, data, fields) {
@@ -490,7 +490,7 @@ app.post('/updateProfile',function(req,res){
 				message: err
 		   	});
 		}else{
-			let sql = "UPDATE usersdetails SET user_address = '"+req.body.profile_address+"', user_city = '"+req.body.profile_city+"', user_pincode = '"+req.body.profile_pincode+"', user_state = '"+req.body.profile_state+"' WHERE user_id="+req.body.user_id;
+			let sql = "UPDATE usersdetails SET user_address = '"+req.body.user_address+"', user_city = '"+req.body.user_city+"', user_pincode = '"+req.body.user_pincode+"', user_state = '"+req.body.user_state+"' WHERE user_id="+req.body.user_id;
 
 			db.query(sql, function(err, data, fields) {
 				if(err){

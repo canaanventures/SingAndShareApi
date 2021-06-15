@@ -2834,6 +2834,41 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 	});
 })
 
+app.get('/getPaginatedUsers/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+
+	let sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id ORDER BY a.user_first_name, a.user_last_name DESC limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from users";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Details fetched successfully."
+					});
+				}
+			})					
+		}
+	});
+})
+
 app.post('/changeStatusOfPCS',function(req,res){
 	let sql = "UPDATE pcs SET status = '"+req.body.status+"', modified_date = NOW() WHERE pcs_id="+req.body.pcs_id;
 

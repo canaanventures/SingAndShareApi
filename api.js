@@ -2834,6 +2834,30 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 	});
 })
 
+app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
+	let sql;
+	if(req.params.type == 'all'){
+		sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id;
+	}else{
+		sql = "SELECT * FROM pcs WHERE pcs_id = "+ req.params.type;
+	}
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "Details fetched successfully."
+			});						
+		}
+	});
+})
+
 app.get('/getPaginatedUsers/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 

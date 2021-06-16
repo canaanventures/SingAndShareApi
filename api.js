@@ -811,7 +811,7 @@ app.post('/addEvent',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_type_id, poster_url, status) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable')";
+	let sql = "INSERT INTO events (event_name, event_start_date, event_end_date, cost_per_person, description, created_by_user_id, created_date, venue_name, event_type_id, poster_url, status, connection_link) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.cost_per_person+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.event_type_id+"','"+req.body.imgurl+"','Enable','"+req.body.connection_link+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -834,7 +834,7 @@ app.post('/addCalendar',function(req,res){
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "INSERT INTO calendar (event_name, event_start_date, event_end_date,  description, created_by, created_on, venue_name) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"')";
+	let sql = "INSERT INTO calendar (event_name, event_start_date, event_end_date,  description, created_by, created_on, venue_name, connection_link) VALUES ('"+req.body.event_name+"','"+req.body.event_start_date+"','"+req.body.event_end_date+"','"+req.body.description+"','"+req.body.created_by_user_id+"','"+reqdte+"','"+req.body.venue_name+"','"+req.body.connection_link+"')";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -881,7 +881,7 @@ app.post('/editEvent',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"', poster_url = '"+req.body.imgurl+"' WHERE event_id="+req.body.event_id;
+	let sql = "UPDATE events SET event_name = '"+req.body.event_name+"', event_start_date = '"+req.body.event_start_date+"', event_end_date = '"+req.body.event_end_date+"', cost_per_person = '"+req.body.cost_per_person+"', description = '"+req.body.description+"', modified_user_id = '"+req.body.modified_user_id+"', modified_user_date = '"+reqdte+"', venue_name = '"+req.body.venue_name+"', event_type_id = '"+req.body.event_type_id+"', poster_url = '"+req.body.imgurl+"', connection_link = '"+req.body.connection_link+"' WHERE event_id="+req.body.event_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -1146,9 +1146,13 @@ app.get('/getEventStatus',function(req,res){
 app.get('/getBlogImg/:id', function(req, res){
 	let sql = "SELECT image_url from blogs WHERE blog_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
-		const file = data[0].image_url;
-		if(file){
-			res.sendFile(__dirname + file);
+		if(data.length > 0){
+			const file = data[0].image_url;
+			if(file){
+				res.sendFile(__dirname + file);
+			}else{
+				res.sendFile(__dirname + '/uploads/not-found/no-img-found-medium.png');
+			}
 		}else{
 			res.sendFile(__dirname + '/uploads/not-found/no-img-found-medium.png');
 		}
@@ -1158,9 +1162,13 @@ app.get('/getBlogImg/:id', function(req, res){
 app.get('/getUserImg/:id', function(req, res){
 	let sql = "SELECT image_url from users WHERE user_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
-		const file = data[0].image_url;
-		if(file){
-			res.sendFile(__dirname + file);
+		if(data.length > 0){
+			const file = data[0].image_url;
+			if(file){
+				res.sendFile(__dirname + file);
+			}else{
+				res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+			}
 		}else{
 			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
 		}
@@ -1761,7 +1769,7 @@ app.get('/getNewMenteeReportList',function(req,res){
 })
 
 app.get('/getPCSReportList',function(req,res){
-	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id";
+	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id WHERE a.status = 'Y'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -2008,9 +2016,13 @@ app.post('/changeLMSCatStatus',function(req,res) {
 app.get('/getLMSCategoryImg/:id', function(req, res){
 	let sql = "SELECT category_image_url from Lms_Category WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
-		const file = data[0].category_image_url;
-		if(file){
-			res.sendFile(__dirname + file);
+		if(data.length > 0){
+			const file = data[0].category_image_url;
+			if(file){
+				res.sendFile(__dirname + file);
+			}else{
+				res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+			}
 		}else{
 			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
 		}  		
@@ -2081,12 +2093,16 @@ app.post('/addTrainingCourseImg/:course_name',lmscourseupload.single('image'),fu
 app.get('/getLMSCourseImg/:id', function(req, res){
 	let sql = "SELECT course_image_url from Lms_Course WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
-		const file = data[0].course_image_url;
-  		if(file){
-			res.sendFile(__dirname + file);
+		if(data.length > 0){
+			const file = data[0].course_image_url;
+	  		if(file){
+				res.sendFile(__dirname + file);
+			}else{
+				res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+			}
 		}else{
 			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
-		}
+		}		
 	});
 });
 
@@ -2118,7 +2134,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 
 app.get('/getPaginatedCourse/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT * from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id  limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, a.row_id AS course_id from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -2302,9 +2318,13 @@ app.post('/addTrainingLessonImg/:lesson_name',lmslessonupload.single('image'),fu
 app.get('/getLMSLessonImg/:id', function(req, res){
 	let sql = "SELECT lesson_image_url from Lms_Lesson WHERE row_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
-		const file = data[0].lesson_image_url;
-  		if(file){
-			res.sendFile(__dirname + file);
+		if(data.length > 0){
+			const file = data[0].lesson_image_url;
+	  		if(file){
+				res.sendFile(__dirname + file);
+			}else{
+				res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
+			}
 		}else{
 			res.sendFile(__dirname + '/uploads/not-found/no-img-found-small.png');
 		}

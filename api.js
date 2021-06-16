@@ -2128,7 +2128,7 @@ app.get('/getPaginatedCourse/:cnt',function(req,res){
 		   	});
 		}else{
 			let resp1 = data;
-			let sql = "SELECT COUNT(*) AS total from Lms_Category";
+			let sql = "SELECT COUNT(*) AS total from Lms_Course";
 			db.query(sql, function(err, data, fields) {
 				if(err){
 					res.json({

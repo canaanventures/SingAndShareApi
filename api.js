@@ -2360,6 +2360,40 @@ app.get('/getLMSLesson/:cnt',function(req,res){
 	});
 })
 
+app.get('/getPaginatedLesson/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT *, CONCAT(a.row_id) AS lesson_id from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id  limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from Lms_Lesson";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
+		}
+	});
+})
+
 app.get('/removeDoc/:rowid/:lessonid',function(req,res){    
 	let sql = "SELECT pdf_path FROM Lms_Lesson_Doc WHERE row_id = " + req.params.rowid;
 	db.query(sql, function(err, data, fields) {
@@ -2573,6 +2607,40 @@ app.get('/getLMSClass/:cnt',function(req,res){
 	});
 })
 
+app.get('/getPaginatedClass/:id/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT *, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = "+req.params.id+" limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from Lms_Class WHERE created_by = " + req.params.id;
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
+		}
+	});
+})
+
 app.get('/getAllLMSClass',function(req,res){
 	let sql = "SELECT a.class_name, b.course_name, c.user_first_name, c.user_last_name, a.start_date, a.end_date, a.class_status, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id";
 
@@ -2588,6 +2656,40 @@ app.get('/getAllLMSClass',function(req,res){
 				data: data,
 				message: "List fetched successfully."
 			});						
+		}
+	});
+})
+
+app.get('/getPaginatedAllClass/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT a.class_name, b.course_name, c.user_first_name, c.user_last_name, a.start_date, a.end_date, a.class_status, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from Lms_Class";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
 		}
 	});
 })

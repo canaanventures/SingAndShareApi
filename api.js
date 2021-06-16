@@ -1282,7 +1282,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	});
 })
 
-/* app.get('/getPaginatedBlogs/:cnt',function(req,res){
+app.get('/getPaginatedBlogs/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id limit "+limit+" OFFSET "+offset;
 
@@ -1314,7 +1314,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 			})						
 		}
 	});
-}) */
+})
 
 app.get('/getApprovedBlogs',function(req,res){
 	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id WHERE approval_status = 'Y' AND b.status = 'Enable'";
@@ -1948,7 +1948,7 @@ app.get('/getLMSCategory/:cnt',function(req,res){
 	});
 })
 
-/* app.get('/getPaginatedCategory/:cnt',function(req,res){
+app.get('/getPaginatedCategory/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 	let sql = "SELECT * from Lms_Category limit "+limit+" OFFSET "+offset;
 
@@ -1980,7 +1980,7 @@ app.get('/getLMSCategory/:cnt',function(req,res){
 			})						
 		}
 	});
-}) */
+})
 
 app.post('/changeLMSCatStatus',function(req,res) {
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
@@ -2116,7 +2116,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 	});
 })
 
-/*app.get('/getPaginatedCourse/:cnt',function(req,res){
+app.get('/getPaginatedCourse/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 	let sql = "SELECT * from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id  limit "+limit+" OFFSET "+offset;
 
@@ -2148,7 +2148,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 			})						
 		}
 	});
-}) */
+})
 
 app.get('/getMentors/:id',function(req,res){
 	let sql = "SELECT user_id, user_email_id FROM users WHERE role_id IN (9,11) AND srs_id = "+req.params.id;
@@ -2936,7 +2936,7 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 	});
 })
 
-/* app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
+app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 	let sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+" limit "+limit+" OFFSET "+offset;
 
@@ -2968,7 +2968,7 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 			})						
 		}
 	});
-}) */
+})
 
 app.get('/getPaginatedUsers/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;

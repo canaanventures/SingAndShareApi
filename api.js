@@ -1282,6 +1282,40 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	});
 })
 
+app.get('/getPaginatedBlogs/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from blogs";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
+		}
+	});
+})
+
 app.get('/getApprovedBlogs',function(req,res){
 	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id WHERE approval_status = 'Y' AND b.status = 'Enable'";
 	
@@ -1914,6 +1948,40 @@ app.get('/getLMSCategory/:cnt',function(req,res){
 	});
 })
 
+app.get('/getPaginatedCategory/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT * from Lms_Category limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from Lms_Category";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
+		}
+	});
+})
+
 app.post('/changeLMSCatStatus',function(req,res) {
 	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
 	month < 10 ? mon = "0"+month : mon = month;
@@ -2044,6 +2112,40 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 				data: data,
 				message: "List fetched successfully."
 			});						
+		}
+	});
+})
+
+app.get('/getPaginatedCourse/:cnt',function(req,res){
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT * from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id  limit "+limit+" OFFSET "+offset;
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from Lms_Category";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Lists fetched successfully."
+					});
+				}
+			})						
 		}
 	});
 })
@@ -2835,12 +2937,8 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 })
 
 app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
-	let sql;
-	if(req.params.type == 'all'){
-		sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id;
-	}else{
-		sql = "SELECT * FROM pcs WHERE pcs_id = "+ req.params.type;
-	}
+	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
+	let sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+" limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -2848,12 +2946,26 @@ app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
 				status: null,
 				message: err
 		   	});
-		}else{			
-			res.json({
-				status: 200,
-				data: data,
-				message: "Details fetched successfully."
-			});						
+		}else{
+			let resp1 = data;
+			let sql = "SELECT COUNT(*) AS total from pcs WHERE user_id = "+req.params.user_id;
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					res.json({
+						status: 200,
+						data: {
+							data : resp1,
+							total : data 
+						},
+						message: "Details fetched successfully."
+					});
+				}
+			})						
 		}
 	});
 })

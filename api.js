@@ -2116,7 +2116,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 	});
 })
 
-app.get('/getPaginatedCourse/:cnt',function(req,res){
+/*app.get('/getPaginatedCourse/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 	let sql = "SELECT * from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id  limit "+limit+" OFFSET "+offset;
 
@@ -2148,7 +2148,7 @@ app.get('/getPaginatedCourse/:cnt',function(req,res){
 			})						
 		}
 	});
-})
+}) */
 
 app.get('/getMentors/:id',function(req,res){
 	let sql = "SELECT user_id, user_email_id FROM users WHERE role_id IN (9,11) AND srs_id = "+req.params.id;

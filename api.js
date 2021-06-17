@@ -760,8 +760,10 @@ app.get('/deleteGalleryImg/:id',function(req,res){
 			  return acc;
 			},[]);
 			for(var i=0;i<result.length;i++){
-				const pathToFile = __dirname + data[i].image_url;
-				fs.unlinkSync(pathToFile);
+				if(data.length > 0){
+					const pathToFile = __dirname + data[i].image_url;
+					fs.unlinkSync(pathToFile);
+				}				
 				/* fs.unlinkSync(pathToFile, function(err) {
 					if (err) {
 						throw err

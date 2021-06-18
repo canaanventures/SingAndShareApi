@@ -2425,8 +2425,11 @@ app.get('/removeDoc/:rowid/:lessonid',function(req,res){
 				message: err
 		   	});
 		}else{
-			const pathToFile = __dirname + data[0].pdf_path;
-			fs.unlinkSync(pathToFile);
+			if(data.length > 0){
+				const pathToFile = __dirname + data[0].pdf_path;
+				fs.unlinkSync(pathToFile);
+			}
+			
 			let sql = "DELETE FROM Lms_Lesson_Doc WHERE row_id = " + req.params.rowid;
 			db.query(sql, function(err, data, fields) {
 				if(err){

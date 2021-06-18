@@ -1180,13 +1180,15 @@ app.get('/getUserImg/:id', function(req, res){
 app.post('/getBlogMultiImg', function(req, res){
 	let data = req.body; let imgArr = [];
 	for(var i=0;i<data.length;i++){
-		if(data[i].image_url){
-			let buff = fs.readFileSync(__dirname+data[i].image_url);
-			let base64data = buff.toString('base64');
-			imgArr.push({
-				'id': data[i].blog_id,
-				'src': base64data
-			});
+		if(data.length > 0){
+			if(data[i].image_url){
+				let buff = fs.readFileSync(__dirname+data[i].image_url);
+				let base64data = buff.toString('base64');
+				imgArr.push({
+					'id': data[i].blog_id,
+					'src': base64data
+				});
+			}
 		}
 	}
 	res.json({
@@ -1208,11 +1210,13 @@ app.get('/getGalleryImg/:type', function(req, res){
 	db.query(sql, function(err, data, fields) {
 		let imgArr = [];
 		for(var i=0;i<data.length;i++){
-			if(data[i].image_url){
-				let buff = fs.readFileSync(__dirname+data[i].image_url);
-				let base64data = buff.toString('base64');				
-				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-				imgArr.push(data[i]);
+			if(data.length > 0){
+				if(data[i].image_url){
+					let buff = fs.readFileSync(__dirname+data[i].image_url);
+					let base64data = buff.toString('base64');				
+					data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+					imgArr.push(data[i]);
+				}
 			}
 		}
 		res.json({
@@ -1228,11 +1232,35 @@ app.get('/getMultiEventImg', function(req, res){
 	db.query(sql, function(err, data, fields) {
 		let imgArr = [];
 		for(var i=0;i<data.length;i++){
-			if(data[i].poster_url){
-				let buff = fs.readFileSync(__dirname+data[i].poster_url);
-				let base64data = buff.toString('base64');				
-				data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-				imgArr.push(data[i]);
+			if(data.length > 0){
+				if(data[i].poster_url){
+					let buff = fs.readFileSync(__dirname+data[i].poster_url);
+					let base64data = buff.toString('base64');				
+					data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+					imgArr.push(data[i]);
+				}
+			}
+		}
+		res.json({
+			status: 200,
+			data: imgArr,
+			message: "List fetched successfully."
+		});			
+	});
+});
+
+app.get('/getMultiBlogImg', function(req, res){
+	let sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 5";
+	db.query(sql, function(err, data, fields) {
+		let imgArr = [];
+		for(var i=0;i<data.length;i++){
+			if(data.length > 0){
+				if(data[i].image_url){
+					let buff = fs.readFileSync(__dirname+data[i].image_url);
+					let base64data = buff.toString('base64');				
+					data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+					imgArr.push(data[i]);
+				}
 			}
 		}
 		res.json({
@@ -1271,7 +1299,7 @@ app.post('/addBlog',function(req,res){
 app.get('/getBlogs/:listtype/:cnt',function(req,res){
 	let sql = '';
 	if(req.params.listtype == 'multiple'){
-		(req.params.cnt == 'all') ? sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id" : sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 1";
+		(req.params.cnt == 'all') ? sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id" : sql = "SELECT * FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id AND b.approval_status = 'Y' AND b.status = 'Enable' ORDER BY b.modified_on DESC LIMIT 5";
 	}else{
 		sql = "SELECT * FROM blogs b INNER JOIN blog_category c ON b.category = c.category_id LEFT JOIN users u ON b.created_by_user_id = u.user_id WHERE blog_id = "+req.params.cnt;
 	}
@@ -1338,11 +1366,13 @@ app.get('/getApprovedBlogs',function(req,res){
 		}else{
 			let imgArr = [];
 			for(var i=0;i<data.length;i++){
-				if(data[i].image_url){
-					let buff = fs.readFileSync(__dirname+data[i].image_url);
-					let base64data = buff.toString('base64');				
-					data[i].image_url = 'data:image/jpeg;base64,' + base64data;
-					imgArr.push(data[i]);
+				if(data.length > 0){
+					if(data[i].image_url){
+						let buff = fs.readFileSync(__dirname+data[i].image_url);
+						let base64data = buff.toString('base64');				
+						data[i].image_url = 'data:image/jpeg;base64,' + base64data;
+						imgArr.push(data[i]);
+					}
 				}
 			}
 			res.json({
@@ -1882,6 +1912,44 @@ app.post('/getTopicReportListByDate',function(req,res){
 	})
 })
 
+app.get('/getEventReportList',function(req,res){
+	let sql = "SELECT a.event_name, a.event_start_date, a.event_end_date, a.venue_name, b.EventType FROM events a LEFT JOIN event_type b ON a.event_type_id = b.EventTypeID";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.post('/getEventReportListByDate',function(req,res){
+	let sql = "SELECT a.event_name, a.event_start_date, a.event_end_date, a.venue_name, b.EventType FROM events a LEFT JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_start_date >='"+req.body.from_date+"' AND a.event_start_date <= '"+req.body.to_date+"'";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
 app.get('/getNewlyAddedList',function(req,res){
 	let sql = "SELECT a.user_id, CONCAT(a.user_first_name,' ',a.user_last_name) AS user_name, a.user_created_date, a.user_email_id, a.user_contact_number, a.status, b.role_name, CONCAT(c.user_first_name,' ',c.user_last_name) AS mentor_name, d.srs_name FROM users a LEFT JOIN roles b ON a.role_id = b.role_id LEFT JOIN users c ON a.parent_id = c.user_id LEFT JOIN srs_branch d ON a.srs_id = d.srs_id ORDER BY a.user_created_date DESC";
 	
@@ -1924,6 +1992,82 @@ app.post('/getAttendanceReportListByDate',function(req,res){
 	//let sql = "SELECT CONCAT( d.user_first_name, ' ', d.user_last_name ) AS captain_name, b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id WHERE a.meeting_date >='"+req.body.from_date+"' AND a.meeting_date <= '"+req.body.to_date+"' GROUP BY a.created_by, a.srs_id, users_name, c.attendance_status ORDER BY users_name";
 
 	let sql = "SELECT b.srs_name, a.srs_id, c.attendance_status, CONCAT( c.user_first_name, ' ', c.user_last_name ) AS users_name, e.user_contact_number, e.user_email_id, CONCAT( f.user_first_name, ' ', f.user_last_name ) AS mentor_name, COUNT(*) AS count FROM meetingattendance a LEFT JOIN srs_branch b ON a.srs_id = b.srs_id LEFT JOIN attendees c ON a.meeting_id = c.meeting_id LEFT JOIN users d ON a.created_by = d.user_id LEFT JOIN users e ON c.user_id = e.user_id LEFT JOIN users f ON e.parent_id = f.user_id Where c.user_first_name != '' OR c.attendance_status != '' AND a.meeting_date >='"+req.body.from_date+"' AND a.meeting_date <= '"+req.body.to_date+"' GROUP BY a.srs_id, users_name, c.attendance_status, e.user_contact_number, e.user_email_id, mentor_name ORDER BY users_name";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getMentorNonActiveReportList',function(req,res){
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentor_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id != 10";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.post('/getMentorActivityReportByDate',function(req,res){
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentor_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id != 10 AND a.created_on NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"' AND a.modified_date NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"'";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.get('/getMenteeNonActiveReportList',function(req,res){
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id = 10";
+
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	})
+})
+
+app.post('/getMenteeActivityReportByDate',function(req,res){
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id = 10 AND a.created_on NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"' AND a.modified_date NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"'";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

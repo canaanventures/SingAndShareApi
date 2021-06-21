@@ -1680,7 +1680,7 @@ app.post('/updateAccess',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE user_access SET sns_access = '"+req.body.sns_access+"', user_access = '"+req.body.user_access+"', event_access = '"+req.body.event_access+"', attendance_access = '"+req.body.attendance_access+"', calendar_access = '"+req.body.calendar_access+"', calendar_add_access = '"+req.body.calendar_add_access+"', blog_access = '"+req.body.blog_access+"', blog_approve_access = '"+req.body.blog_approve_access+"', blog_change_status_access = '"+req.body.blog_status_access+"' WHERE user_id="+req.body.user_id;
+	let sql = "UPDATE user_access SET sns_access = '"+req.body.sns_access+"', user_access = '"+req.body.user_access+"', event_access = '"+req.body.event_access+"', attendance_access = '"+req.body.attendance_access+"', calendar_access = '"+req.body.calendar_access+"', calendar_add_access = '"+req.body.calendar_add_access+"', blog_access = '"+req.body.blog_access+"', blog_approve_access = '"+req.body.blog_approve_access+"', blog_change_status_access = '"+req.body.blog_status_access+"' WHERE access_id="+req.body.access_id;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -3502,6 +3502,60 @@ app.post('/resetpassword',function(req,res){
 			res.json({
 				status: 200,
 				message: "Your password has been resetted successfully."
+		   	});
+		}
+	})
+})
+
+app.get('/getLessonsActivityForMentees/:class_id',function(req,res){
+	let sql = "SELECT * FROM Lms_Class_Lesson WHERE class_id = '"+req.params.class_id+"'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				data:data,
+				message: "List fetched successfully."
+		   	});
+		}
+	})
+})
+
+app.get('/getLessonsActivityForMentees/:class_id',function(req,res){
+	let sql = "SELECT * FROM Lms_Class_Lesson WHERE class_id = '"+req.params.class_id+"'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				data:data,
+				message: "List fetched successfully."
+		   	});
+		}
+	})
+})
+
+app.get('/getMenteeStatusForClass/:class_id/:user_id',function(req,res){
+	let sql = "SELECT mentee_status FROM Lms_Mentees WHERE class_id = '"+req.params.class_id+"' AND mentee_id = '"+req.params.user_id+"'";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				data:data,
+				message: "Status fetched successfully."
 		   	});
 		}
 	})

@@ -1404,10 +1404,18 @@ app.post('/updateBlog',function(req,res){
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
 	let sql;
-	if(req.body.imgurl == ''){
-		sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"' WHERE blog_id="+req.body.blog_id;
+	if(req.body.approval_status){
+		if(req.body.imgurl == ''){
+			sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"' WHERE blog_id="+req.body.blog_id;
+		}else{
+			sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"', image_url ='"+req.body.imgurl+"' WHERE blog_id="+req.body.blog_id;
+		}
 	}else{
-		sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', approval_status = '"+req.body.approval_status+"', image_url ='"+req.body.imgurl+"' WHERE blog_id="+req.body.blog_id;
+		if(req.body.imgurl == ''){
+			sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE blog_id="+req.body.blog_id;
+		}else{
+			sql = "UPDATE blogs SET title = '"+req.body.title+"', category = '"+req.body.category+"', description = '"+req.body.description+"', modified_by = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"', image_url ='"+req.body.imgurl+"' WHERE blog_id="+req.body.blog_id;
+		}
 	}
 
 	db.query(sql, function(err, data, fields) {
@@ -3182,8 +3190,8 @@ app.get('/downloadPDF/:id', function(req, res){
 	});
 });
 
-app.get('/getCourseDetailsForMentees/:id',function(req,res){
-	let sql = "SELECT *, CONCAT(b.row_id) AS class_id FROM Lms_Course a INNER JOIN Lms_Class b ON a.row_id = b.course_id WHERE a.row_id = "+ req.params.id;
+app.get('/getCourseDetailsForMentees/:id/:user_id',function(req,res){
+	let sql = "SELECT *, CONCAT(b.row_id) AS class_id FROM Lms_Course a INNER JOIN Lms_Class b ON a.row_id = b.course_id INNER JOIN users c ON b.instructor_id = c.parent_id WHERE a.row_id = '"+ req.params.id+"' AND c.user_id = '"+ req.params.user_id+"'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

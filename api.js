@@ -174,73 +174,86 @@ const mailerdetails = nodemailer.createTransport({
 app.post('/login',function(req,res){
 	let sql = "SELECT status from users where user_email_id ='"+req.body.email+"'";
 	db.query(sql, function(err, data, fields) {
-		if(data[0].status == 'Disable'){
+		if(data.length > 0){
+			if(data[0].status == 'Disable'){
+				res.json({
+					status: 201,
+					message: "You are not authorized to login"
+				});
+			}else{
+				let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+				db.getConnection(function (err, connection) {
+					if(err){
+			            console.log(err);
+			        }else{
+						connection.query(sql, function(err, data, fields) {
+							if(err){
+								res.json({
+									status: null,
+									message: err
+							   	});
+							}else{
+								if(data.length > 0){
+									let query = "SELECT user_password from users_password WHERE user_email_id = '"+req.body.email+"'";
+									connection.query(query, function(err, data, fields) {
+										if(err){
+											res.json({
+												status: null,
+												message: err
+										   	});
+										}else{
+											if(data[0].user_password == req.body.pass_word){				let query = "SELECT * from users a INNER JOIN roles b ON a.role_id = b.role_id WHERE user_email_id = '"+req.body.email+"'";
+												connection.query(query, function(err, data, fields) {
+													if(err){
+														res.json({
+															status: null,
+															message: err
+													   	});
+													}else{
+														const user = {
+															email : data[0].user_email_id,
+															user_id : data[0].user_id,
+															first_name : data[0].user_first_name,
+															last_name : data[0].user_last_name,
+															srs_id : data[0].srs_id,
+															role_id : data[0].role_id,
+															role_name : data[0].role_name,
+															scopes:["customer:create","customer:read"]
+														}
+														jwt.sign(user, 'my secret key', (err,token) => {
+															res.json({
+																status: 200,
+																message: "User logged in successfully.",
+																token : token,
+																data: data
+															});
+														})
+													}									
+												})
+											}else{
+												res.json({
+													status: 201,
+													message: "Incorrect password."
+												});
+											}
+										}
+									})
+								}else{
+									res.json({
+										status: 201,
+										message: "Email ID does not exist"
+									});
+								}								
+							}
+						})
+						connection.release();
+					}
+				});
+			}
+		}else{
 			res.json({
 				status: 201,
-				message: "You are not authorized to login"
-			});
-		}else{
-			let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
-			db.getConnection(function (err, connection) {
-				if(err){
-		            console.log(err);
-		        }else{
-					connection.query(sql, function(err, data, fields) {
-						if(err){
-							res.json({
-								status: null,
-								message: err
-						   	});
-						}else{
-							let query = "SELECT user_password from users_password WHERE user_email_id = '"+req.body.email+"'";
-							connection.query(query, function(err, data, fields) {
-								if(err){
-									res.json({
-										status: null,
-										message: err
-								   	});
-								}else{
-									if(data[0].user_password == req.body.pass_word){					
-										let query = "SELECT * from users a INNER JOIN roles b ON a.role_id = b.role_id WHERE user_email_id = '"+req.body.email+"'";
-										connection.query(query, function(err, data, fields) {
-											if(err){
-												res.json({
-													status: null,
-													message: err
-											   	});
-											}else{
-												const user = {
-													email : data[0].user_email_id,
-													user_id : data[0].user_id,
-													first_name : data[0].user_first_name,
-													last_name : data[0].user_last_name,
-													srs_id : data[0].srs_id,
-													role_id : data[0].role_id,
-													role_name : data[0].role_name,
-													scopes:["customer:create","customer:read"]
-												}
-												jwt.sign(user, 'my secret key', (err,token) => {
-													res.json({
-														status: 200,
-														message: "User logged in successfully.",
-														token : token,
-														data: data
-													});
-												})
-											}									
-										})
-									}else{
-										res.json({
-											status: 201,
-											message: "Incorrect password."
-										});
-									}
-								}
-							})
-						}
-					})
-					connection.release();
-				}
+				message: "Email ID does not exist"
 			});
 		}
 	});

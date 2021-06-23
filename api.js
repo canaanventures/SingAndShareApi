@@ -3458,6 +3458,35 @@ app.post('/visitors',function(req,res){
 	});
 });
 
+app.post('/enquiry',function(req,res){
+	let param ={
+		"visitor_name" : req.body.visitor_name,
+		"visitor_email_id" : req.body.visitor_email_id,
+		"message" : req.body.message
+	}
+	var description = contact_email.enquiry(param);
+	var mailOptions={
+	    to : 'prashant.k@theapprenticeproject.org',
+	    cc : 'rbnjathanna@vecan.co',
+		subject : "Contact Details",
+		html : description
+	}
+
+	mailerdetails.sendMail(mailOptions, function(error, response){
+	    if(error){
+	        res.json({
+				status: 200,
+				message: error
+			});
+	    }else{
+	        res.json({
+				status: 200,
+				message: "Message has been sent successfully."
+			});
+	    }
+	});
+});
+
 app.post('/forgotpassword',function(req,res){
 	let sql = "SELECT * FROM users WHERE user_email_id = '"+req.body.email_id+"'";
 	db.query(sql, function(err, data, fields) {

@@ -357,11 +357,11 @@ app.post('/updateUser',function(req,res){
 
 	var srs = '';
 	(req.body.srs_id == '') ? srs = null : srs = req.body.srs_id;
-	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.first_name+"', users.user_last_name = '"+req.body.last_name+"', users.user_email_id = '"+req.body.email_id+"', users.role_id = '"+req.body.role+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.srs_id = "+srs+", users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
+	let sql = "UPDATE users , users_password SET users.user_first_name = '"+req.body.user_first_name+"', users.user_last_name = '"+req.body.user_last_name+"', users.user_email_id = '"+req.body.user_email_id+"', users.role_id = '"+req.body.role_id+"', users.mentor_email_id = '"+req.body.mentor_email_id+"', users.modified_by_user_id = '"+req.body.modified_by+"', users.srs_id = "+srs+", users.modified_on = '"+reqdte+"', users_password.user_email_id = '"+req.body.user_email_id+"' WHERE users.user_id="+req.body.user_id+" and users_password.user_id="+req.body.user_id;
 	
 	db.query(sql, function(err, data, fields) {
 		if(req.body.mentor_email_id == ''){
-			let sql = "UPDATE users SET parent_id = '0' WHERE user_email_id ='"+req.body.email_id+"'";
+			let sql = "UPDATE users SET parent_id = '0' WHERE user_email_id ='"+req.body.user_email_id+"'";
 			db.query(sql, function(err, data, fields) {		
 				if(err){
 					res.json({
@@ -378,7 +378,7 @@ app.post('/updateUser',function(req,res){
 		}else{
 			let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
 			db.query(sql, function(err, data, fields) {
-				let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.email_id+"'";
+				let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.user_email_id+"'";
 				db.query(sql, function(err, data, fields) {		
 					if(err){
 						res.json({

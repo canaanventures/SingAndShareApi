@@ -2519,7 +2519,7 @@ app.post('/addLMSLesson',function(req,res){
 app.post('/addLessonDoc/:id',lessonupload.array('image',10),function(req,res){    
 	res.json({
 		status: 200,
-		message: "Lesson Image Added successfully."
+		message: "Lesson Added successfully."
 	});
 })
 

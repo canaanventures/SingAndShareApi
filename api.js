@@ -378,20 +378,28 @@ app.post('/updateUser',function(req,res){
 		}else{
 			let sql = "SELECT user_id FROM users WHERE user_email_id ='"+req.body.mentor_email_id+"'";
 			db.query(sql, function(err, data, fields) {
-				let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.user_email_id+"'";
-				db.query(sql, function(err, data, fields) {		
-					if(err){
-						res.json({
-							status: null,
-							message: err
-					   	});
-					}else{
-						res.json({
-							status: 200,
-							message: "User updated successfully."
-						});
-					}
-				});
+				if(data.length > 0){
+
+					let sql = "UPDATE users SET parent_id = '"+data[0].user_id+"' WHERE user_email_id ='"+req.body.user_email_id+"'";
+					db.query(sql, function(err, data, fields) {		
+						if(err){
+							res.json({
+								status: null,
+								message: err
+							});
+						}else{
+							res.json({
+								status: 200,
+								message: "User updated successfully."
+							});
+						}
+					});
+				}else{
+					res.json({
+						status: 200,
+						message: "User updated successfully."
+					});
+				}
 			});
 		}
 	})

@@ -1201,10 +1201,14 @@ app.get('/getUserImg/:id', function(req, res){
 app.get('/getEventImg/:id', function(req, res){
 	let sql = "SELECT poster_url FROM events WHERE event_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {
+		console.log(data)
 		if(data.length > 0){
 			const file = data[0].poster_url;
+			console.log(file)
 			if(file){
+				
 				res.sendFile(__dirname + file);
+
 			}else{
 				res.sendFile(__dirname + '/uploads/not-found/no-img-found-medium.png');
 			}

@@ -1198,6 +1198,7 @@ app.get('/getUserImg/:id', function(req, res){
 	});
 });
 
+
 app.get('/getEventImg/:id', function(req, res){
 	let sql = "SELECT poster_url FROM events WHERE event_id = "+req.params.id;
 	db.query(sql, function(err, data, fields) {

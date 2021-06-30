@@ -1008,6 +1008,7 @@ app.get('/pastEvents',function(req,res){
 	});
 })
 
+
 app.get('/getEvents/:type', function(req,res){
 	let sql = '';
 	if(req.params.type == 'home'){

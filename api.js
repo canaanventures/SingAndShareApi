@@ -1016,7 +1016,7 @@ app.get('/getEvents/:type', function(req,res){
 
 		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()";
+		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW() ORDER BY a.created_date DESC";
 	}else{
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}

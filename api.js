@@ -1016,7 +1016,7 @@ app.get('/getEvents/:type', function(req,res){
 
 		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()";
+		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW() ORDER BY created_on DESC";
 	}else{
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}
@@ -1604,7 +1604,7 @@ app.post('/editBranch',function(req,res) {
 app.get('/getBranches/:type',function(req,res){
 	let sql = '';
 	if(req.params.type == 'all'){
-		sql = "SELECT srs_branch.srs_id, srs_branch.srs_name, srs_branch.created_on,srs_branch.status , users.user_first_name, users.user_last_name FROM srs_branch INNER JOIN users ON users.user_id = srs_branch.user_id";
+		sql = "SELECT srs_branch.srs_id, srs_branch.srs_name, srs_branch.created_on,srs_branch.status , users.user_first_name, users.user_last_name FROM srs_branch INNER JOIN users ON users.user_id = srs_branch.user_id ORDER BY created_on DESC";
 	}else if(req.params.type == 'adduser'){
 		sql = "SELECT srs_id, srs_name FROM srs_branch  WHERE status = 'Enable'";
 	}else{
@@ -3337,7 +3337,8 @@ app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
 app.get('/getPaginatedUsers/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 
-	let sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id ORDER BY a.user_first_name, a.user_last_name DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id  ORDER BY created_on DESC limit  limit "+limit+" OFFSET "+offset;
+	// ORDER BY a.user_first_name, a.user_last_name DESC
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

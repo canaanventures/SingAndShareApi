@@ -1016,7 +1016,7 @@ app.get('/getEvents/:type', function(req,res){
 
 		sql ="SELECT * from events where status = 'Enable'";
 	}else if(req.params.type == 'all'){
-		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW() ORDER BY created_on DESC";
+		sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date > NOW()";
 	}else{
 		sql ="SELECT * , event_type.EventType FROM events INNER JOIN event_type ON events.event_type_id = event_type.EventTypeID where event_id = " + req.params.type;
 	}
@@ -1364,7 +1364,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 
 app.get('/getPaginatedBlogs/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

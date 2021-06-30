@@ -3301,7 +3301,7 @@ app.get('/getPCS/:user_id/:type',function(req,res){
 
 app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+" limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+" ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

@@ -3278,7 +3278,7 @@ app.post('/addPCS',function(req,res){
 app.get('/getPCS/:user_id/:type',function(req,res){
 	let sql;
 	if(req.params.type == 'all'){
-		sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+" ORDER BY created_on DESC";
+		sql = "SELECT * FROM pcs WHERE user_id = "+req.params.user_id+"ORDER BY created_on DESC";
 	}else{
 		sql = "SELECT * FROM pcs WHERE pcs_id = "+ req.params.type;
 	}

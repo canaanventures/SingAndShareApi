@@ -1364,7 +1364,7 @@ app.get('/getBlogs/:listtype/:cnt',function(req,res){
 
 app.get('/getPaginatedBlogs/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, b.status AS blog_status FROM blogs b INNER JOIN blog_category c WHERE b.category = c.category_id ORDER BY b.created_date DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

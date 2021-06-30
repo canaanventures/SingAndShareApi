@@ -3337,7 +3337,8 @@ app.get('/getPaginatedPCS/:user_id/:cnt',function(req,res){
 app.get('/getPaginatedUsers/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
 
-	let sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id ORDER BY a.user_first_name, a.user_last_name DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT a.user_id, a.user_first_name, a.user_last_name, a.user_created_date,a.status, b.role_name, c.srs_name, CONCAT(d.user_first_name, ' ', d.user_last_name) AS mentor_name FROM users a INNER JOIN roles b ON a.role_id = b.role_id LEFT JOIN srs_branch c ON a.srs_id = c.srs_id LEFT JOIN users d ON d.user_id = a.parent_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	//ORDER BY a.user_first_name, a.user_last_name,  DESC
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

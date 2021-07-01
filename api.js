@@ -260,70 +260,75 @@ app.post('/login',function(req,res){
 })
 
 app.post('/register',function(req,res){
-	var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
-	month < 10 ? mon = "0"+month : mon = month;
-	dte < 10 ? dt = "0"+dte : dt = dte;
-	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
-
-	let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number,status,parent_id, srs_id) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"','"+req.body.status+"','"+req.body.parent_id+"','"+req.body.srs_id+"')";
-
+	let sql = "SELECT * FROM users WHERE user_email_id = '"+req.body.user_email_id+"'";
 	db.query(sql, function(err, data, fields) {
-		if(err){
-			res.json({
-				status: null,
-				message: err
-		   	});
-		}else{
-			let user_id = data.insertId;
-			let sql = "INSERT INTO user_access (user_id, sns_access, user_access, event_access, attendance_access, calendar_add_access, calendar_access, blog_access, blog_approve_access, blog_change_status_access) VALUES ('"+user_id+"','0','0','0','0','0','0','0','0','0')";
+		if(data.length == 0){
+			var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+			month < 10 ? mon = "0"+month : mon = month;
+			dte < 10 ? dt = "0"+dte : dt = dte;
+			var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+			let sql = "INSERT INTO users (user_first_name, user_last_name, user_email_id, user_created_date, role_id, mentor_email_id, user_contact_number,status,parent_id, srs_id) VALUES ('"+req.body.user_first_name+"','"+req.body.user_last_name+"','"+req.body.user_email_id+"','"+reqdte+"','"+req.body.role_id+"','"+req.body.mentor_email_id+"','"+req.body.user_contact_number+"','"+req.body.status+"','"+req.body.parent_id+"','"+req.body.srs_id+"')";
+
 			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					let user_id = data.insertId;
+					let sql = "INSERT INTO user_access (user_id, sns_access, user_access, event_access, attendance_access, calendar_add_access, calendar_access, blog_access, blog_approve_access, blog_change_status_access) VALUES ('"+user_id+"','0','0','0','0','0','0','0','0','0')";
+					db.query(sql, function(err, data, fields) {
 
-				let sql = "INSERT INTO users_password (user_password,user_email_id,user_id) VALUES ('"+req.body.user_password+"','"+req.body.user_email_id+"','"+user_id+"')";
-				db.query(sql, function(err, data, fields) {
+						let sql = "INSERT INTO users_password (user_password,user_email_id,user_id) VALUES ('"+req.body.user_password+"','"+req.body.user_email_id+"','"+user_id+"')";
+						db.query(sql, function(err, data, fields) {
 
-					if(err){
-						res.json({
-							status: null,
-							message: err
-					   	});
-					}else{
-						let sql = "INSERT INTO usersdetails (user_id, user_address, user_pincode, user_city, user_state) VALUES ('"+user_id+"','',0,'','')";
-						db.query(sql, function(err, data, fields) {							
 							if(err){
 								res.json({
 									status: null,
 									message: err
 							   	});
 							}else{
-								let param ={
-									"email_id" : req.body.user_email_id,
-									"password" : req.body.user_password
-								}
-								var description = registration_email.user_register(param);
+								let sql = "INSERT INTO usersdetails (user_id, user_address, user_pincode, user_city, user_state) VALUES ('"+user_id+"','',0,'','')";
+								db.query(sql, function(err, data, fields) {							
+									if(err){
+										res.json({
+											status: null,
+											message: err
+									   	});
+									}else{
+										let param ={
+											"email_id" : req.body.user_email_id,
+											"password" : req.body.user_password
+										}
+										var description = registration_email.user_register(param);
 
-							   	var mailOptions={
-							        to: req.body.user_email_id,
-									subject: 'Welcome to SingAndShare !!!',
-									html: description
-							    }
+									   	var mailOptions={
+									        to: req.body.user_email_id,
+											subject: 'Welcome to SingAndShare !!!',
+											html: description
+									    }
 
-							    mailerdetails.sendMail(mailOptions, function(error, response){
-								    if(error){
-								        res.end("error");
-								    }else{
-								        res.json({
-											status: 200,
-											message: "You have been successfully registered. email has been sent to your mentioned ID."
+									    mailerdetails.sendMail(mailOptions, function(error, response){
+										    if(error){
+										        res.end("error");
+										    }else{
+										        res.json({
+													status: 200,
+													message: "You have been successfully registered. email has been sent to your mentioned ID."
+												});
+										    }
 										});
-								    }
-								});
+									}
+								})
 							}
-						})
-					}
-				});
-			})
+						});
+					})
+				}
+			});
 		}
-	});
+	})
 })
 
 app.post('/changeUserStatus',function(req,res) {
@@ -650,33 +655,38 @@ app.post('/addAttendees',function(req,res){
 })
 
 app.post('/sendUserLink',function(req,res){
-	let param = {
-		redirectlink : constant.redirectlink,
-		url : req.body.url
-	}
-	var description = registration_email.mentee_register(param);
+	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
+	db.query(sql, function(err, data, fields) {
+		if(data.length == 0){
+			let param = {
+				redirectlink : constant.redirectlink,
+				url : req.body.url
+			}
+			var description = registration_email.mentee_register(param);
 
-   	var mailOptions={
-        to: req.body.email,
-        cc: 'abraham@vecan.co, rbnjathanna@gmail.com',
-		subject: 'Register Yourself as a Mentee at SingAndShare',
-		html: description
-    }
+		   	var mailOptions={
+		        to: req.body.email,
+		        cc: 'abraham@vecan.co, rbnjathanna@gmail.com',
+				subject: 'Register Yourself as a Mentee at SingAndShare',
+				html: description
+		    }
 
-    mailerdetails.sendMail(mailOptions, function(error, response){
-	    if(error){
-	        res.json({
-	        	status:201,
-	        	message:error,
-	        	data:response
-	        });
-	    }else{
-	        res.json({
-				status: 200,
-				message: "Email is sent to the mentioned Email Address."
-		   	});
-	    }
-	});
+		    mailerdetails.sendMail(mailOptions, function(error, response){
+			    if(error){
+			        res.json({
+			        	status:201,
+			        	message:error,
+			        	data:response
+			        });
+			    }else{
+			        res.json({
+						status: 200,
+						message: "Email is sent to the mentioned Email Address."
+				   	});
+			    }
+			});
+		}
+	})
 })
 
 app.post('/checkUser',function(req,res){

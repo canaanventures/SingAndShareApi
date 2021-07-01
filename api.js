@@ -327,6 +327,11 @@ app.post('/register',function(req,res){
 					})
 				}
 			});
+		}else{
+			res.json({
+				status: 201,
+				message: "Email ID already exist"
+			});
 		}
 	})
 })
@@ -685,6 +690,11 @@ app.post('/sendUserLink',function(req,res){
 				   	});
 			    }
 			});
+		}else{
+			res.json({
+				status:201,
+				message: "Email ID already exists."
+			})
 		}
 	})
 })

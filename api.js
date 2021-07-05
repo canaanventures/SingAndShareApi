@@ -342,7 +342,12 @@ app.post('/changeUserStatus',function(req,res) {
 	dte < 10 ? dt = "0"+dte : dt = dte;
 	var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-	let sql = "UPDATE users SET status = '"+req.body.status+"', modified_by_user_id = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.userid;
+	let sql;
+	if(req.body.statusEnableDesc){
+		sql = "UPDATE users SET status = '"+req.body.status+"', user_activation_reason = '"+req.body.statusEnableDesc+"', modified_by_user_id = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.userid;
+	}else{
+		sql = "UPDATE users SET status = '"+req.body.status+"', user_deactivation_reason = '"+req.body.statusDisableDesc+"', modified_by_user_id = '"+req.body.modified_by_user_id+"', modified_on = '"+reqdte+"' WHERE user_id="+req.body.userid;
+	}
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

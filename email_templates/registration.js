@@ -12,6 +12,20 @@ module.exports = {
 		)
 	},
 
+	event_register_link: function(param) {
+		return(
+			"<h3>Welcome to SingAndShare</h3>"+
+			"<p>You have successfully your for the event. The event details are as follows :- </p>"+
+			"<table>"+
+			"<tr><td>Event Name</td><td>"+param.event_name+"</td></tr>"+
+			"<tr><td>Event Date</td><td>"+param.event_start_date+"</td></tr>"+
+			"<tr><td>Event Time</td><td>"+param.event_start_time+"</td></tr>"+
+			"<tr><td>Event Venue</td><td>"+param.venue_name+"</td></tr>"+
+			"<tr><td>Meeting Link</td><td><a href='"+param.connection_link+"'>"+param.connection_link+"</td></tr>"+
+			"</table>"
+		)
+	},
+
 	mentee_register: function(param) {
 		return(
 			'<h3>Welcome to SingAndShare</h3>'+

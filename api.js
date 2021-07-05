@@ -579,7 +579,7 @@ app.post('/addToContactEvent',function(req,res){
 				message: err
 		   	});
 		}else{
-			let sql = "SELECT event_name, event_start_date, venue_name FROM events WHERE event_id = " + req.body.event_id;
+			let sql = "SELECT event_name, event_start_date, venue_name, connection_link FROM events WHERE event_id = " + req.body.event_id;
 			db.query(sql, function(err, data, fields) {
 				if(err){
 					res.json({
@@ -595,9 +595,15 @@ app.post('/addToContactEvent',function(req,res){
 						"event_name" : data[0].event_name,
 						"event_start_date" : evt_date,
 						"event_start_time": evt_time,
-						"venue_name": data[0].venue_name
+						"venue_name": data[0].venue_name,
+						"connection_link": data[0].connection_link
 					}
-					var description = registration_email.event_register(param);
+					var description;
+					if(data[0].connection_link){
+						description = registration_email.event_register_link(param);
+					}else{
+						description = registration_email.event_register(param);
+					}					
 
 				   	var mailOptions={
 				        to: req.body.contact_email_id,

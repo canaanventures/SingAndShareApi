@@ -712,44 +712,59 @@ app.post('/sendUserLink',function(req,res){
 
 app.post('/checkUser',function(req,res){
 	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
-	db.query(sql, function(err, data, fields) {
+	db.query(sql, function(err, data1, fields) {
 		if(err){
 			res.json({
 				status: null,
 				message: err
 		   	});
-		}else{
-			if(data.length == 0){
-				let sql = "SELECT * from contact WHERE contact_email_id = '"+req.body.email+"'";
-				db.query(sql, function(err, data, fields) {
-					if(err){
-						res.json({
-							status: null,
-							message: err
-					   	});
-					}else{
-						if(data.length == 0){
+		}else{			
+			let sql = "SELECT * from contact WHERE contact_email_id = '"+req.body.email+"'";
+			db.query(sql, function(err, data, fields) {
+				if(err){
+					res.json({
+						status: null,
+						message: err
+				   	});
+				}else{
+					if(data.length == 0){
+						if(data1.length == 0){
 							res.json({
 								status: 201,
 								email: req.body.email,
 								message: "User Does not exist"
 						   	});
 						}else{
-							res.json({
-								status: 200,
-								email: req.body.email,
-								message: "User exists"
-						   	});
+							var a = new Date(), month = (a.getMonth()+1), mon = '', dte = a.getDate(), dt = '';
+							month < 10 ? mon = "0"+month : mon = month;
+							dte < 10 ? dt = "0"+dte : dt = dte;
+							var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
+
+							let sql = "INSERT INTO contact (user_id, contact_email_id, event_id, created_date) VALUES ('"+data1[0].user_id+"','"+req.body.contact_email_id+"','"+req.body.event_id+"','"+reqdte+"')";
+							
+							db.query(sql, function(err, data, fields) {
+								if(err){
+									res.json({
+										status: null,
+										message: err
+								   	});
+								}else{
+									res.json({
+										status: 200,
+										message: "New User registered for the event."
+									});
+								}
+							});	
 						}
+					}else{
+						res.json({
+							status: 200,
+							email: req.body.email,
+							message: "User exists"
+					   	});
 					}
-				})
-			}else{
-				res.json({
-					status: 200,
-					email: req.body.email,
-					message: "User exists"
-			   	});
-			}
+				}
+			})
 		}
 	})
 })

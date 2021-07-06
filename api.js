@@ -711,7 +711,7 @@ app.post('/sendUserLink',function(req,res){
 })
 
 app.post('/checkUser',function(req,res){
-	let sql = "SELECT * from contact WHERE contact_email_id = '"+req.body.email+"'";
+	let sql = "SELECT * from users WHERE user_email_id = '"+req.body.email+"'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -720,11 +720,29 @@ app.post('/checkUser',function(req,res){
 		   	});
 		}else{
 			if(data.length == 0){
-				res.json({
-					status: 201,
-					email: req.body.email,
-					message: "User Does not exist"
-			   	});
+				let sql = "SELECT * from contact WHERE contact_email_id = '"+req.body.email+"'";
+				db.query(sql, function(err, data, fields) {
+					if(err){
+						res.json({
+							status: null,
+							message: err
+					   	});
+					}else{
+						if(data.length == 0){
+							res.json({
+								status: 201,
+								email: req.body.email,
+								message: "User Does not exist"
+						   	});
+						}else{
+							res.json({
+								status: 200,
+								email: req.body.email,
+								message: "User exists"
+						   	});
+						}
+					}
+				})
 			}else{
 				res.json({
 					status: 200,

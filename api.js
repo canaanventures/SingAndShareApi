@@ -740,7 +740,7 @@ app.post('/checkUser',function(req,res){
 							dte < 10 ? dt = "0"+dte : dt = dte;
 							var reqdte = a.getFullYear()+'-'+mon+'-'+dt+' '+a.getHours()+':'+a.getMinutes()+':'+a.getSeconds();
 
-							let sql = "INSERT INTO contact (user_id, contact_email_id, event_id, created_date) VALUES ('"+data1[0].user_id+"','"+req.body.contact_email_id+"','"+req.body.event_id+"','"+reqdte+"')";
+							let sql = "INSERT INTO contact (user_id, contact_email_id, event_id, created_date) VALUES ('"+data1[0].user_id+"','"+req.body.email+"','"+req.body.event_id+"','"+reqdte+"')";
 							
 							db.query(sql, function(err, data, fields) {
 								if(err){

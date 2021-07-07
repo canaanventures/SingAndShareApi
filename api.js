@@ -3257,7 +3257,7 @@ app.get('/disableMentee/:user_id/:id',function(req,res) {
 
 /* Mentee Page */
 app.get('/getUpComingCourseForMentees/:id',function(req,res){
-	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND a.mentee_status = 'Y' AND DATE(c.start_date) > DATE(NOW())";
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND DATE(c.start_date) > DATE(NOW())";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

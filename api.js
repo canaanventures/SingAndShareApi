@@ -2279,7 +2279,7 @@ app.get('/getLMSCategory/:cnt',function(req,res){
 
 app.get('/getPaginatedCategory/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT * from Lms_Category limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT * from Lms_Category limit ORDER BY created_on DESC "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

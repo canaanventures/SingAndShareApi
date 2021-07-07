@@ -2953,7 +2953,7 @@ app.get('/getLMSClass/:cnt',function(req,res){
 
 app.get('/getPaginatedClass/:id/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, a.created_on AS class_created_on CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = "+req.params.id+" ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, a.created_on AS class_created_on, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = "+req.params.id+" ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

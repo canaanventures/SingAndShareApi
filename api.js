@@ -2455,7 +2455,7 @@ app.get('/getLMSCourse/:cnt',function(req,res){
 
 app.get('/getPaginatedCourse/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, a.row_id AS course_id from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, a.row_id AS course_id from Lms_Course a INNER JOIN Lms_Category b ON a.category_id = b.row_id ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -2703,7 +2703,7 @@ app.get('/getLMSLesson/:cnt',function(req,res){
 
 app.get('/getPaginatedLesson/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, CONCAT(a.row_id) AS lesson_id from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, CONCAT(a.row_id) AS lesson_id from Lms_Lesson a INNER JOIN Lms_Category b ON a.category_id = b.row_id LEFT JOIN Lms_Course c ON a.course_id = c.row_id ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -2953,7 +2953,7 @@ app.get('/getLMSClass/:cnt',function(req,res){
 
 app.get('/getPaginatedClass/:id/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT *, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = "+req.params.id+" ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT *, a.created_on AS class_created_on CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id WHERE a.created_by = "+req.params.id+" ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -3006,7 +3006,7 @@ app.get('/getAllLMSClass',function(req,res){
 
 app.get('/getPaginatedAllClass/:cnt',function(req,res){
 	const limit = 10, page = req.params.cnt, offset = (page - 1) * limit;
-	let sql = "SELECT a.class_name, b.course_name, c.user_first_name, c.user_last_name, a.start_date, a.end_date, a.class_status, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id ORDER BY created_on DESC limit "+limit+" OFFSET "+offset;
+	let sql = "SELECT a.class_name, b.course_name, c.user_first_name, c.user_last_name, a.start_date, a.end_date, a.class_status, CONCAT(a.row_id) AS class_id from Lms_Class a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN users c ON a.instructor_id = c.user_id ORDER BY a.created_on DESC limit "+limit+" OFFSET "+offset;
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

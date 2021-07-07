@@ -1916,7 +1916,7 @@ app.get('/getNewMenteeReportList',function(req,res){
 })
 
 app.get('/getPCSReportList',function(req,res){
-	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, c.srs_name, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE a.status = 'Y'";
+	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, c.srs_name, c.srs_id, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE a.status = 'Y'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

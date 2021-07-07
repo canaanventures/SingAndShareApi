@@ -1916,7 +1916,7 @@ app.get('/getNewMenteeReportList',function(req,res){
 })
 
 app.get('/getPCSReportList',function(req,res){
-	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id WHERE a.status = 'Y'";
+	let sql = "SELECT a.current_status, a.modified_date, a.created_on, a.name_of_user, a.relation_with_user, c.srs_name, CONCAT (b.user_first_name,' ', b.user_last_name) as member_name from pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE a.status = 'Y'";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
@@ -3274,8 +3274,44 @@ app.get('/getUpComingCourseForMentees/:id',function(req,res){
 	});
 })
 
+app.get('/getUpComingCourseForMentors/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.created_by="+ req.params.id +" AND DATE(c.start_date) > DATE(NOW())";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
 app.get('/getOnGoingCourseForMentees/:id',function(req,res){
 	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.mentee_id="+ req.params.id+" AND a.mentee_status = 'Y' AND DATE(c.start_date) <= DATE(NOW()) AND DATE(c.end_date) >= DATE(NOW())";
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{			
+			res.json({
+				status: 200,
+				data: data,
+				message: "List fetched successfully."
+			});						
+		}
+	});
+})
+
+app.get('/getOnGoingCourseForMentors/:id',function(req,res){
+	let sql = "SELECT * FROM Lms_Mentees a LEFT JOIN Lms_Course b ON a.course_id = b.row_id LEFT JOIN Lms_Class c ON a.class_id = c.row_id WHERE a.created_by="+ req.params.id +" AND DATE(c.start_date) <= DATE(NOW()) AND DATE(c.end_date) >= DATE(NOW())";
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({

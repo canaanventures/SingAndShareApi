@@ -2182,7 +2182,7 @@ app.post('/getMentorActivityReportByDate',function(req,res){
 })
 
 app.get('/getMenteeNonActiveReportList',function(req,res){
-	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id = 10";
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){
@@ -2201,7 +2201,7 @@ app.get('/getMenteeNonActiveReportList',function(req,res){
 })
 
 app.post('/getMenteeActivityReportByDate',function(req,res){
-	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE b.role_id = 10 AND a.created_on NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"' AND a.modified_date NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"'";
+	let sql = "SELECT CONCAT(b.user_first_name,' ',b.user_last_name) AS mentee_name, a.created_on, a.modified_date, a.current_status, a.status, c.srs_name FROM pcs a LEFT JOIN users b ON a.user_id = b.user_id LEFT JOIN srs_branch c ON b.srs_id = c.srs_id WHERE  a.created_on NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"' AND a.modified_date NOT BETWEEN '"+req.body.from_date+"' AND '"+req.body.to_date+"'";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

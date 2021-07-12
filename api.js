@@ -3750,4 +3750,23 @@ app.get('/getMenteeStatusForClass/:class_id/:user_id',function(req,res){
 	})
 })
 
+app.get('/getMenteeStatusForClass/:class_id/:user_id',function(req,res){
+	let sql = "SELECT user_id, first_name, last_name, email_id, parent_id FROM sns_generation Group BY parent_id, user_id, first_name, last_name, email_id order by parent_id";
+	
+	db.query(sql, function(err, data, fields) {
+		if(err){
+			res.json({
+				status: null,
+				message: err
+		   	});
+		}else{
+			res.json({
+				status: 200,
+				data:data,
+				message: "List fetched successfully."
+		   	});
+		}
+	})
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

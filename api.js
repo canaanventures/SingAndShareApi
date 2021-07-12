@@ -3751,7 +3751,7 @@ app.get('/getMenteeStatusForClass/:class_id/:user_id',function(req,res){
 })
 
 app.get('/getOrganizationalReport',function(req,res){
-	let sql = "SELECT user_id, first_name, last_name, email_id, parent_id FROM sns_generation Group BY parent_id, user_id, first_name, last_name, email_id order by parent_id";
+	let sql = "SELECT user_id AS id, CONCAT(first_name,' ', last_name) AS name, email_id AS title, parent_id FROM sns_generation Group BY parent_id, user_id, first_name, last_name, email_id order by parent_id";
 
 	db.query(sql, function(err, data, fields) {
 		if(err){

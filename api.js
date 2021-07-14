@@ -1053,11 +1053,11 @@ app.get('/getRole',function(req,res){ //,authorize("customer:read")
 		}
 	});
 })
-
+   
 app.get('/pastEvents',function(req,res){
 	//let sql ="SELECT * , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date < NOW()";
 	let sql = "SELECT * , (SELECT COUNT(c.image_url) AS count from gallery c WHERE c.event_id = a.event_id) AS count_img , b.EventType FROM events a INNER JOIN event_type b ON a.event_type_id = b.EventTypeID WHERE a.event_end_date < NOW()";
-	
+
 	db.query(sql, function(err, data, fields) {
 		if(err){
 			res.json({
